@@ -1,0 +1,15 @@
+---
+interface Props {
+    height?: number;
+    text?: string;
+}
+const { height = 240, text = "Belum ada data untuk ditampilkan." } =
+    Astro.props;
+---
+
+<div
+    class="grid place-items-center rounded-xl bg-bg text-sm text-muted"
+    style={`height:${height}px`}
+>
+    {text}
+</div>

@@ -1,0 +1,202 @@
+---
+import Main from "../../layouts/dashboard/Main.astro";
+import Monitoring from "../../layouts/dashboard/Monitoring.astro";
+import Card from "../../layouts/Grid/Card.astro";
+import GridItem from "../../layouts/Grid/GridItem.astro";
+import LineChart from "../../components/global/chart/LineChart.astro";
+import BarChart from "../../components/global/chart/BarChart.astro";
+import GridLayout from "../../layouts/Grid/Grid.astro";
+
+// --- mock: ganti dengan hasil fetch; chart tidak peduli artinya ---
+const days = Array.from({ length: 30 }, (_, i) => `${i + 1} Okt`);
+const a = days.map((_, i) =>
+    Math.round(110 + 25 * Math.sin(i / 3) + (i % 5) * 4),
+);
+const a2 = days.map((_, i) =>
+    Math.round(110 + 25 * Math.sin(i / 3) + (i % 10) * 3),
+);
+const b = a.map((v) => Math.round(v * 0.48));
+const months = ["Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt"];
+const mA = [3150, 3700, 3750, 3900, 3700, 4050, 3550];
+const mB = [1780, 2080, 2100, 2200, 2080, 2300, 1990];
+---
+
+<Main title="">
+    <Monitoring
+        title="Overview"
+        description="Ringkasan kunjungan situs dan artikel."
+    >
+        <GridItem md={12} lg={6}>
+            <GridLayout>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                {
+                                    key: "c",
+                                    label: "other",
+                                    values: a2,
+                                },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+            </GridLayout>
+        </GridItem>
+        <GridItem md={12} lg={6}>
+            <GridLayout>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+            </GridLayout>
+        </GridItem>
+        <GridItem md={12} lg={6}>
+            <GridLayout>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+            </GridLayout>
+        </GridItem>
+        <GridItem md={12} lg={6}>
+            <GridLayout>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+                <GridItem md={12} lg={6}>
+                    <Card>
+                        <h2 class="mb-4 text-base">Grafik harian</h2>
+                        <LineChart
+                            labels={days}
+                            series={[
+                                { key: "a", label: "Anonim", values: a },
+                                { key: "b", label: "Unique", values: b },
+                            ]}
+                            ariaLabel="Grafik garis harian, 30 hari terakhir"
+                            tooltipNote={(i) =>
+                                `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                        />
+                    </Card>
+                </GridItem>
+            </GridLayout>
+        </GridItem>
+
+        <GridItem md={12} lg={6}>
+            <Card>
+                <h2 class="mb-4 text-base">Grafik harian</h2>
+                <LineChart
+                    labels={days}
+                    series={[
+                        { key: "a", label: "Anonim", values: a },
+                        { key: "b", label: "Unique", values: b },
+                    ]}
+                    ariaLabel="Grafik garis harian, 30 hari terakhir"
+                    tooltipNote={(i) =>
+                        `Rasio A/B: ${(a[i] / b[i]).toFixed(1)}`}
+                />
+            </Card>
+        </GridItem>
+
+        <GridItem md={12} lg={6}>
+            <Card>
+                <h2 class="mb-4 text-base">Grafik bulanan</h2>
+                <BarChart
+                    labels={months}
+                    mode="overlay"
+                    series={[
+                        { key: "a", label: "Anonim", values: mA },
+                        { key: "b", label: "Unique", values: mB },
+                    ]}
+                    ariaLabel="Grafik batang bulanan, 6 bulan terakhir"
+                />
+            </Card>
+        </GridItem>
+    </Monitoring>
+</Main>

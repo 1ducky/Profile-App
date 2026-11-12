@@ -1,0 +1,58 @@
+---
+import type { Article } from "../../types/article/entity"; // Sesuaikan path types Anda
+import { ArticleThumbnail } from "./Thubnail";
+
+interface Props {
+    /** Daftar artikel yang akan ditampilkan */
+    articles: Article[];
+    /** Judul section, default: "BERITA TERKINI" */
+    title?: string;
+}
+
+const { articles = [], title = "BERITA TERKINI" } = Astro.props;
+
+// ============================================================
+// UTILITY FUNGSI
+// ============================================================
+// Fungsi untuk mengubah ISO Date string menjadi format "X menit/jam lalu"
+function timeAgo(dateString: string) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Baru saja";
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} menit`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} jam`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} hari`;
+}
+---
+
+<div class="lg:grid hidden grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    {
+        articles.map((article) => (
+            <a
+                href={article.url ? article.url : `/articles/${article.slug}`}
+                class="flex flex-col group cursor-pointer"
+            >
+                {/* Thumbnail Gambar */}
+                <ArticleThumbnail
+                    image={article.image}
+                    priority={false}
+                    stats={article.stats}
+                    className="w-full h-full object-cover "
+                />
+
+                {/* Judul */}
+                <h3 class="text-sm font-bold leading-snug text-gray-900 line-clamp-4 group-hover:text-blue-600 transition-colors">
+                    {article.title}
+                </h3>
+            </a>
+        ))
+    }
+</div>

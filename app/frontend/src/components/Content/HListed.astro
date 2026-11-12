@@ -1,0 +1,25 @@
+---
+import type { ArticleResponse } from "../../contract/article";
+import { ResolveUrlAsset } from "../../utils/resolve-url";
+import ArticleMiniCard from "./MiniCard.tsx";
+import { ArticleThumbnail } from "./Thubnail";
+
+interface Props {
+    /** Daftar artikel yang akan ditampilkan */
+    articles: ArticleResponse[];
+    /** Judul section, default: "BERITA TERKINI" */
+    title?: string;
+}
+
+const { articles = [], title = "BERITA TERKINI" } = Astro.props;
+---
+
+<div
+    class="lg:grid hidden grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-center gap-4 px-2"
+>
+    {
+        articles.map((article) => (
+            <ArticleMiniCard article={article} className="h-full" />
+        ))
+    }
+</div>

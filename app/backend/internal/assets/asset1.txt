@@ -1,0 +1,259 @@
+// package assets_test
+
+// // Sesuaikan import path di bawah ini dengan module path project kamu.
+// // Contoh: "github.com/namamu/proyekmu/internal/assets"
+// import (
+// 	"RewriteProject/internal/assets"
+// 	"RewriteProject/internal/config"
+// 	storage "RewriteProject/internal/localstorage"
+// 	"context"
+// 	"fmt"
+// 	"os"
+// 	"path/filepath"
+// 	"testing"
+// )
+
+// // ---------------------------------------------------------------------------
+// // Magic bytes / header sederhana untuk tiap format file.
+// // Cukup untuk lolos content-sniffing (http.DetectContentType) maupun untuk
+// // menjaga ekstensi file tetap valid. Bukan file yang benar-benar utuh/valid
+// // secara penuh, tapi cukup untuk kebutuhan test upload & validasi policy.
+// // ---------------------------------------------------------------------------
+// var fileHeaders = map[string][]byte{
+// 	"jpeg": {0xFF, 0xD8, 0xFF, 0xE0},
+// 	"png":  {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
+// 	"gif":  []byte("GIF89a"),
+// 	"webp": append([]byte("RIFF"), append([]byte{0x00, 0x00, 0x00, 0x00}, []byte("WEBP")...)...),
+// 	"pdf":  []byte("%PDF-1.4"),
+// 	"zip":  {0x50, 0x4B, 0x03, 0x04},                         // dipakai bareng utk docx/xlsx/pptx (OOXML = zip)
+// 	"ole":  {0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1}, // doc lama (binary/OLE)
+// 	"mp4":  {0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70}, // ....ftyp
+// 	"mov":  {0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20},
+// 	"avi":  append([]byte("RIFF"), append([]byte{0x00, 0x00, 0x00, 0x00}, []byte("AVI ")...)...),
+// 	"mkv":  {0x1A, 0x45, 0xDF, 0xA3},
+// 	"webm": {0x1A, 0x45, 0xDF, 0xA3}, // satu keluarga EBML dgn mkv
+// 	"flv":  {0x46, 0x4C, 0x56, 0x01},
+// 	"txt":  []byte("berkas teks biasa, bukan gambar/dokumen/video valid"),
+// }
+
+// // setupUsecase menyiapkan Usecase persis seperti di main(), dipakai bersama
+// // oleh semua subtest.
+// func setupUsecase(t *testing.T) assets.UsecaseContract {
+// 	t.Helper()
+
+// 	appConfig, err := config.LoadConfig()
+// 	if err != nil {
+// 		t.Fatalf("gagal load config: %v", err)
+// 	}
+
+// 	localStorage, err := storage.NewLocalStorage(appConfig.StorageConfig)
+// 	if err != nil {
+// 		t.Fatalf("gagal init local storage: %v", err)
+// 	}
+
+// 	assetRepo := assets.NewRepository()
+// 	return assets.NewUsecase(appConfig.StorageConfig, localStorage, assetRepo)
+// }
+
+// // writeTestFile membuat file lokal di dir dengan header/magic-bytes tertentu
+// // lalu di-truncate ke ukuran totalSize (pakai sparse file, jadi tetap cepat
+// // walau totalSize-nya besar, misal 100MB untuk kategori video).
+// func writeTestFile(t *testing.T, dir, name string, header []byte, totalSize int64) string {
+// 	t.Helper()
+
+// 	if int64(len(header)) > totalSize {
+// 		totalSize = int64(len(header))
+// 	}
+
+// 	path := filepath.Join(dir, name)
+// 	f, err := os.Create(path)
+// 	if err != nil {
+// 		t.Fatalf("gagal membuat file %s: %v", path, err)
+// 	}
+// 	defer f.Close()
+
+// 	if _, err := f.Write(header); err != nil {
+// 		t.Fatalf("gagal menulis header ke %s: %v", path, err)
+// 	}
+// 	if err := f.Truncate(totalSize); err != nil {
+// 		t.Fatalf("gagal truncate %s ke %d bytes: %v", path, totalSize, err)
+// 	}
+
+// 	return path
+// }
+
+// // openAndUpload membuka file lalu memanggil Upload dengan policy yang diberikan.
+// func openAndUpload(t *testing.T, uc assets.UsecaseContract, path string, category assets.AssetCategory) error {
+// 	t.Helper()
+
+// 	f, err := os.Open(path)
+// 	if err != nil {
+// 		t.Fatalf("gagal membuka file %s: %v", path, err)
+// 	}
+// 	defer f.Close()
+
+// 	_, err = uc.Upload(context.Background(), f, assets.UploadPolicy{
+// 		Category: category,
+// 		UserID:   "test-user-id",
+// 	})
+// 	return err
+// }
+
+// // ===========================================================================
+// // TEST MIME: memastikan mime yang diizinkan lolos, dan yang tidak diizinkan ditolak.
+// // ===========================================================================
+// func TestUpload_Mime(t *testing.T) {
+// 	uc := setupUsecase(t)
+// 	dir := t.TempDir()
+
+// 	type mimeCase struct {
+// 		name      string
+// 		category  assets.AssetCategory
+// 		fileExt   string
+// 		headerKey string
+// 		wantErr   bool
+// 	}
+
+// 	cases := []mimeCase{
+// 		// --- Profile: hanya gambar ---
+// 		{"Profile_JPEG_Valid", assets.CategoryProfile, "jpg", "jpeg", false},
+// 		{"Profile_PNG_Valid", assets.CategoryProfile, "png", "png", false},
+// 		{"Profile_GIF_Valid", assets.CategoryProfile, "gif", "gif", false},
+// 		{"Profile_WebP_Valid", assets.CategoryProfile, "webp", "webp", false},
+// 		{"Profile_PDF_Invalid", assets.CategoryProfile, "pdf", "pdf", true},
+// 		{"Profile_MP4_Invalid", assets.CategoryProfile, "mp4", "mp4", true},
+// 		{"Profile_TXT_Invalid", assets.CategoryProfile, "txt", "txt", true},
+
+// 		// --- Document: pdf, docx, xlsx, pptx, doc ---
+// 		{"Document_PDF_Valid", assets.CategoryDocument, "pdf", "pdf", false},
+// 		{"Document_DOCX_Valid", assets.CategoryDocument, "docx", "zip", false},
+// 		{"Document_XLSX_Valid", assets.CategoryDocument, "xlsx", "zip", false},
+// 		{"Document_PPTX_Valid", assets.CategoryDocument, "pptx", "zip", false},
+// 		{"Document_DOC_Valid", assets.CategoryDocument, "doc", "ole", false},
+// 		{"Document_JPEG_Invalid", assets.CategoryDocument, "jpg", "jpeg", true},
+// 		{"Document_MKV_Invalid", assets.CategoryDocument, "mkv", "mkv", true},
+
+// 		// --- Post: hanya gambar ---
+// 		{"Post_JPEG_Valid", assets.CategoryPost, "jpg", "jpeg", false},
+// 		{"Post_PNG_Valid", assets.CategoryPost, "png", "png", false},
+// 		{"Post_GIF_Valid", assets.CategoryPost, "gif", "gif", false},
+// 		{"Post_WebP_Valid", assets.CategoryPost, "webp", "webp", false},
+// 		{"Post_PDF_Invalid", assets.CategoryPost, "pdf", "pdf", true},
+
+// 		// --- Temp: hanya gambar ---
+// 		{"Temp_JPEG_Valid", assets.CategoryTemp, "jpg", "jpeg", false},
+// 		{"Temp_PNG_Valid", assets.CategoryTemp, "png", "png", false},
+// 		{"Temp_PDF_Invalid", assets.CategoryTemp, "pdf", "pdf", true},
+
+// 		// --- Video: mp4, mov, avi, mkv, webm, flv ---
+// 		{"Video_MP4_Valid", assets.CategoryVideo, "mp4", "mp4", false},
+// 		{"Video_MOV_Valid", assets.CategoryVideo, "mov", "mov", false},
+// 		{"Video_AVI_Valid", assets.CategoryVideo, "avi", "avi", false},
+// 		{"Video_MKV_Valid", assets.CategoryVideo, "mkv", "mkv", false},
+// 		{"Video_WebM_Valid", assets.CategoryVideo, "webm", "webm", false},
+// 		{"Video_FLV_Valid", assets.CategoryVideo, "flv", "flv", false},
+// 		{"Video_JPEG_Invalid", assets.CategoryVideo, "jpg", "jpeg", true},
+// 		{"Video_PDF_Invalid", assets.CategoryVideo, "pdf", "pdf", true},
+// 	}
+
+// 	for _, c := range cases {
+// 		c := c
+// 		t.Run(c.name, func(t *testing.T) {
+// 			header := fileHeaders[c.headerKey]
+// 			fileName := fmt.Sprintf("%s.%s", c.name, c.fileExt)
+// 			// ukuran kecil (4KB) supaya test ini murni menguji mime, bukan size
+// 			path := writeTestFile(t, dir, fileName, header, 4*1024)
+
+// 			err := openAndUpload(t, uc, path, c.category)
+
+// 			if c.wantErr && err == nil {
+// 				t.Errorf("[%s] harusnya gagal (mime tidak diizinkan), tapi berhasil", c.name)
+// 			}
+// 			if !c.wantErr && err != nil {
+// 				t.Errorf("[%s] harusnya berhasil, tapi error: %v", c.name, err)
+// 			}
+// 		})
+// 	}
+// }
+
+// // ===========================================================================
+// // TEST SIZE: memastikan file yang melebihi MaxSize policy ditolak,
+// // dan yang di batas/masih di bawah MaxSize diterima.
+// // ===========================================================================
+// func TestUpload_Size(t *testing.T) {
+// 	uc := setupUsecase(t)
+// 	dir := t.TempDir()
+
+// 	// header valid per kategori, dipakai supaya test size murni (bukan gagal karena mime)
+// 	validHeaderByCategory := map[assets.AssetCategory]string{
+// 		assets.CategoryProfile:  "jpeg",
+// 		assets.CategoryDocument: "pdf",
+// 		assets.CategoryPost:     "jpeg",
+// 		assets.CategoryTemp:     "jpeg",
+// 		assets.CategoryVideo:    "mp4",
+// 	}
+// 	extByCategory := map[assets.AssetCategory]string{
+// 		assets.CategoryProfile:  "jpg",
+// 		assets.CategoryDocument: "pdf",
+// 		assets.CategoryPost:     "jpg",
+// 		assets.CategoryTemp:     "jpg",
+// 		assets.CategoryVideo:    "mp4",
+// 	}
+
+// 	for category, policy := range assets.PolicyAsset {
+// 		category := category
+// 		policy := policy
+// 		headerKey := validHeaderByCategory[category]
+// 		ext := extByCategory[category]
+// 		header := fileHeaders[headerKey]
+
+// 		t.Run(fmt.Sprintf("%s_WithinMaxSize", category), func(t *testing.T) {
+// 			// sedikit di bawah MaxSize, harus berhasil
+// 			size := policy.MaxSize - 1
+// 			path := writeTestFile(t, dir, fmt.Sprintf("%s_within.%s", category, ext), header, size)
+
+// 			if err := openAndUpload(t, uc, path, category); err != nil {
+// 				t.Errorf("[%s] file %d bytes (MaxSize=%d) harusnya lolos, tapi error: %v",
+// 					category, size, policy.MaxSize, err)
+// 			}
+// 		})
+
+// 		t.Run(fmt.Sprintf("%s_ExceedsMaxSize", category), func(t *testing.T) {
+// 			// melebihi MaxSize, harus ditolak
+// 			size := policy.MaxSize + 1
+// 			path := writeTestFile(t, dir, fmt.Sprintf("%s_exceeds.%s", category, ext), header, size)
+
+// 			if err := openAndUpload(t, uc, path, category); err == nil {
+// 				t.Errorf("[%s] file %d bytes (MaxSize=%d) harusnya ditolak karena melebihi batas, tapi berhasil",
+// 					category, size, policy.MaxSize)
+// 			}
+// 		})
+// 	}
+// }
+
+// // ===========================================================================
+// // TEST LAINNYA: kategori tidak dikenal & file kosong (0 byte)
+// // ===========================================================================
+// func TestUpload_UnknownCategory(t *testing.T) {
+// 	uc := setupUsecase(t)
+// 	dir := t.TempDir()
+
+// 	path := writeTestFile(t, dir, "unknown_category.jpg", fileHeaders["jpeg"], 4*1024)
+
+// 	err := openAndUpload(t, uc, path, assets.AssetCategory("not-a-real-category"))
+// 	if err == nil {
+// 		t.Error("upload dengan kategori yang tidak terdaftar di PolicyAsset harusnya gagal, tapi berhasil")
+// 	}
+// }
+
+// func TestUpload_EmptyFile(t *testing.T) {
+// 	uc := setupUsecase(t)
+// 	dir := t.TempDir()
+
+// 	path := writeTestFile(t, dir, "empty.jpg", []byte{}, 0)
+
+// 	err := openAndUpload(t, uc, path, assets.CategoryProfile)
+// 	if err == nil {
+// 		t.Log("catatan: upload file 0 byte berhasil — cek apakah ini memang perilaku yang diinginkan")
+// 	}
+// }

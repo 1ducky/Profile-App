@@ -1,0 +1,23 @@
+---
+/**
+ * PageContainer
+ * Reusable wrapper: max width 1240px + margin responsif.
+ * Dipakai di hampir semua section (header, main, footer inner).
+ *
+ * Props:
+ * - as: tag element (default div)
+ * - class: class tambahan (opsional)
+ */
+interface Props {
+    as?: keyof HTMLElementTagNameMap;
+    class?: string;
+}
+
+const { as: Tag = "div", class: className = "" } = Astro.props;
+---
+
+<Tag
+    class={`max-w-[1240px] mx-auto px-margin-mobile md:px-margin ${className}`}
+>
+    <slot />
+</Tag>

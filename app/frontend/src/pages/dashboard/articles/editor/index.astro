@@ -1,0 +1,35 @@
+---
+
+import { createAuthApi } from "../../../../app/feature/auth";
+import Layout from "../../../../layouts/Layout.astro";
+import { createApi } from "../../../../lib/api/api-client";
+import { ApiError } from "../../../../lib/api/error";
+import { CreateArticle } from "./_publish";
+
+const cookie = Astro.request.headers.get("cookie")||"";
+try {
+    const api = createApi({cookie:cookie})
+    const sessionRes = await createAuthApi(api).session();
+    if (sessionRes.data.id == "") {
+        return Astro.redirect("/articles");
+    }
+} catch (e) {
+    if (e instanceof ApiError) {
+        if (e.statusCode == 401) {
+            return Astro.redirect("/articles");
+        }
+    }
+}
+---
+
+<Layout
+    title="Editor"
+    description="Editor"
+    keywords={["editor"]}
+    type="website"
+    noIndex
+>
+    <main>
+        <CreateArticle client:only="react" />
+    </main>
+</Layout>

@@ -1,0 +1,63 @@
+---
+import { renderMarkdown } from "../../lib/md";
+
+interface Props {
+    content: string;
+}
+
+const { content } = Astro.props;
+const html = renderMarkdown(content);
+---
+
+<article class="article-content" set:html={html} />
+
+<style>
+    .article-content {
+        line-height: 1.85;
+        overflow-wrap: anywhere;
+    }
+
+    .article-content :global(h2) {
+        margin-block: 2rem 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .article-content :global(h3) {
+        margin-block: 1.5rem 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 650;
+    }
+
+    .article-content :global(p) {
+        margin-block: 1rem;
+    }
+
+    .article-content :global(img) {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 1.5rem auto;
+        border-radius: 0.75rem;
+    }
+
+    .article-content :global(blockquote) {
+        margin-block: 1.5rem;
+        padding: 0.75rem 1rem;
+        border-left: 4px solid var(--color-primary);
+        background: var(--color-bg);
+    }
+
+    .article-content :global(ul),
+    .article-content :global(ol) {
+        margin-block: 1rem;
+        padding-left: 1.5rem;
+    }
+
+    .article-content :global(a) {
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+</style>

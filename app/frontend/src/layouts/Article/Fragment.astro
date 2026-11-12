@@ -1,0 +1,36 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+    /** Class tambahan untuk kontainer utama */
+    class?: string;
+}
+
+const { class: className, ...props } = Astro.props;
+---
+
+<div
+    class:list={["w-full max-w-[1200px] mx-auto p-4 md:p-6", className]}
+    {...props}
+>
+    <!-- 
+    Grid Layout:
+    - Mobile: 1 kolom (grid-cols-1)
+    - Desktop (lg): 2 kolom dengan proporsi 2:1 (lg:grid-cols-[2fr_1fr])
+    - Jarak antar kolom (gap-6 lg:gap-8)
+  -->
+    <div
+        class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 lg:gap-8 items-start"
+    >
+        <!-- Kolom Kiri: Konten Utama / Slot Default -->
+        <main class="w-full min-w-0">
+            <slot />
+        </main>
+
+        <!-- Kolom Kanan: Sidebar / Slot Bernama -->
+        <!-- sticky top-4 berguna agar sidebar tetap terlihat saat user scroll konten utama -->
+        <aside class="w-full space-y-6 lg:sticky lg:top-6">
+            <slot name="sidebar" />
+        </aside>
+    </div>
+</div>

@@ -1,0 +1,119 @@
+---
+import { ArrowUpRight, CalendarDays } from 'lucide-react';
+import type { ArticleResponse } from '../../contract/article';
+import { ResolveUrlAsset } from '../../utils/resolve-url';
+import { timeAgo } from '../../utils/time';
+import { ArticleThumbnail } from './Thubnail';
+
+interface Props {
+  /** Daftar artikel yang akan ditampilkan */
+  articles: ArticleResponse[];
+  /** Judul section, default: "BERITA TERKINI" */
+  title?: string;
+}
+
+const { articles = [], title = "BERITA TERKINI" } = Astro.props;
+
+// ============================================================
+// UTILITY FUNGSI
+// ============================================================
+// Fungsi untuk mengubah ISO Date string menjadi format "X menit/jam lalu"
+
+---
+
+<section class="w-full font-sans mx-auto bg-white">
+  <!-- Header Section -->
+  <div class="border-b-2 border-gray-100 pb-2 mb-4">
+    <h2 class="text-xl font-bold text-gray-900 tracking-tight uppercase">
+      {title}
+    </h2>
+  </div>
+
+  <!-- List Container -->
+  <div class="flex flex-col gap-2">
+    {articles.map((article, index) => (
+      <article 
+        class:list={[
+          "flex flex-row items-stretch justify-between py-5 gap-4 group shadow-card rounded-2xl overflow-hidden relative",
+          // Beri border bawah kecuali untuk item terakhir
+          index !== articles.length - 1 && "border-b border-gray-100"
+        ]}
+      >
+        <div class="shrink-0 w-[110px] sm:w-[150px] md:w-[180px]">
+          <div class="relative w-full aspect-[4/3] overflow-hidden bg-gray-200">
+            {article.cover ? (
+              <ArticleThumbnail 
+                image={{ alt: article.title, src: ResolveUrlAsset(article.cover), caption: title }}
+                priority={false}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl"
+              />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+        <!-- Kiri: Konten Teks -->
+        <div class="flex flex-1 flex-col gap-2 p-4">
+                {article.published_at && (
+                    <time
+                        datetime={article.published_at ?? undefined}
+                        class="flex items-center gap-1.5 text-xs text-[#6B7280]"
+                    >
+                        <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                        {timeAgo(article.published_at || "")}
+                    </time>
+                )}
+
+                <h3 class="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[#1F2937]">
+                    {/* Stretched link: seluruh kartu bisa diklik */}
+                    <a
+                        href={article.url != "" ? article.url : "/articles/" + article.slug}
+                        class="outline-none before:absolute before:inset-0 before:content-['']"
+                    >
+                        {article.title}
+                    </a>
+                </h3>
+
+                <p class="line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
+                    {article.excerpt}
+                </p>
+
+                {(article.badges.length > 0 || article.tags.length > 0) && (
+                    <ul class="mt-1 flex flex-wrap gap-1.5">
+                        {article.badges.slice(0, 2).map((badge) => (
+                            <li
+                                class="rounded-full bg-[#16A34A]/10 px-2.5 py-0.5 text-xs font-medium text-[#15803D]"
+                            >
+                                {badge}
+                            </li>
+                        ))}
+                        {article.tags.slice(0, 2).map((tag) => (
+                            <li
+
+                                class="rounded-full bg-[#F8FAFC] px-2.5 py-0.5 text-xs text-[#6B7280] ring-1 ring-inset ring-gray-200"
+                            >
+                                #{tag}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                <span class="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-medium text-[#0B63CE]">
+                    Baca artikel
+                    <ArrowUpRight
+                        className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                        aria-hidden="true"
+                    />
+                </span>
+            </div>
+
+
+        
+      </article>
+    ))}
+  </div>
+</section>

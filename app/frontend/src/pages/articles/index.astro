@@ -1,0 +1,103 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ArticleContainer from "../../layouts/Article/Container.astro";
+import ArticleFooter from "../../layouts/Article/Footer.astro";
+import { type NavItem } from "../../layouts/Article/Header.astro";
+
+import HeadlineSection, {
+    ArticleHeaderNew,
+} from "../../components/Content/Headline";
+import Galery from "../../components/Content/Galery";
+import AdsSection from "../../components/Content/Ads";
+import VListed from "../../components/Content/VListed.astro";
+// import { mockArticles } from "../../data/article/Articles";
+import FragmentSection from "../../layouts/Article/Fragment.astro";
+import HListed from "../../components/Content/HListed.astro";
+import { GetListArticle } from "../../app/feature/article";
+import type { ArticleListResponse } from "../../contract/article";
+import { parseArticleQuery } from "../../app/feature/article/astroquery";
+
+// try {
+//     const res = await GetListArticle();
+//     console.log(res);
+// } catch (e) {
+//     console.log(e);
+// }
+
+const filter = parseArticleQuery(Astro.url.searchParams);
+var articlesList: ArticleListResponse | null = null;
+try {
+    articlesList = await GetListArticle(filter);
+} catch (e) {
+    console.log(e);
+}
+
+if (!articlesList) {
+    return Astro.redirect("/not-found");
+}
+const category = new Map<string, NavItem>();
+
+articlesList.articles.forEach((e) => {
+    category.set(e.category, {
+        label: e.category.toUpperCase(),
+        path: e.category,
+    });
+});
+const tags = new Map<string, NavItem>();
+
+articlesList.articles.forEach((e) => {
+    e.tags.forEach((tag) => {
+        tags.set(tag, {
+            label: tag.toUpperCase(),
+            path: tag,
+        });
+    });
+});
+---
+
+<Layout>
+    <ArticleHeaderNew
+        className="bg-primary"
+        title="Article Harian"
+        categories={[...category.values()]}
+        tags={[...tags.values()]}
+        activePath={filter.category || ""}
+        client:visible
+    />
+    <ArticleContainer class="mt-5">
+        <HeadlineSection
+            article={articlesList.articles.slice(0, 5)}
+            client:visible
+        />
+        <FragmentSection>
+            <VListed articles={articlesList.articles} client:visible />
+            <div class="" slot="sidebar">
+                <div class="aspect-4/3">
+                    <Galery
+                        galery={articlesList.articles.slice(0, 5)}
+                        client:visible
+                    />
+                </div>
+                <AdsSection>
+                    <VListed articles={articlesList.articles} client:visible />
+                </AdsSection>
+            </div>
+        </FragmentSection>
+        <HListed articles={articlesList.articles.slice(0, 5)} client:visible />
+        <FragmentSection>
+            <VListed articles={articlesList.articles} client:visible />
+            <div class="" slot="sidebar">
+                <div class="aspect-4/3">
+                    <Galery
+                        galery={articlesList.articles.slice(0, 5)}
+                        client:visible
+                    />
+                </div>
+                <AdsSection>
+                    <VListed articles={articlesList.articles} client:visible />
+                </AdsSection>
+            </div>
+        </FragmentSection>
+    </ArticleContainer>
+    <ArticleFooter />
+</Layout>

@@ -1,0 +1,23 @@
+---
+import { GetListArticle } from "../../app/feature/article";
+import { Login } from "../../components/auth/Login";
+import Layout from "../../layouts/Layout.astro";
+
+try{
+    const base = import.meta.env.API_URL;
+    const res = await GetListArticle({})
+
+    console.log(res)
+    console.log(base)
+}catch(e){
+    console.log(e)
+}
+---
+
+<Layout>
+    <main
+        class="min-h-screen grid items-center bg-linear-to-r from-primary to-primary-hover"
+    >
+        <Login client:only />
+    </main>
+</Layout>

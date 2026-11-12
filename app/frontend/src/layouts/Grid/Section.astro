@@ -1,0 +1,14 @@
+---
+/** Pembungkus section: jarak 56–72px mobile, 80–120px desktop, container max 1200px. */
+interface Props {
+    tone?: "default" | "warm" | "white";
+    id?: string;
+    class?: string;
+}
+const { tone = "default", id, class: className } = Astro.props;
+const tones = { default: "bg-bg", white: "bg-white", warm: "bg-warm" };
+---
+
+<section id={id} class:list={[tones[tone], "", className]}>
+    <div class="mx-auto max-w-page px-5 md:px-8"><slot /></div>
+</section>

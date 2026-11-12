@@ -1,0 +1,46 @@
+---
+import { GetByID} from "../../../../app/feature/article";
+import { createAuthApi } from "../../../../app/feature/auth";
+import type { ArticleResponse } from "../../../../contract/article";
+import Layout from "../../../../layouts/Layout.astro";
+import { createApi } from "../../../../lib/api/api-client";
+import { ApiError } from "../../../../lib/api/error";
+import { UpdateArticleEditor } from "./_update";
+
+export const prerender = false;
+
+const cookie = Astro.request.headers.get("cookie")||"";
+const { id } = Astro.params;
+if (!id) {
+    console.log("DynamicParam Tidak Ada");
+    return Astro.redirect("/notfound");
+}
+
+let Article: ArticleResponse | null = null;
+try {
+    const api = createApi({cookie:cookie})
+    const sessionRes = await createAuthApi(api).session();
+    if (sessionRes.data.id == "") {
+        return Astro.redirect("/articles");
+    }
+    const ArticleRes = await GetByID(id);
+    Article = ArticleRes;
+
+} catch (e) {
+    if (e instanceof ApiError) {
+        if (e.statusCode == 401) {
+            console.log("Tidak Login");
+            return Astro.redirect("/articles");
+        }
+        if (e.statusCode == 404) {
+            console.log("Article Tidak Ada");
+            return Astro.redirect("/not-found");
+        }
+    }
+}
+if (!Article) return Astro.redirect("/notfound");
+---
+
+<Layout>
+    <UpdateArticleEditor defaultValue={Article} client:only="react" />
+</Layout>

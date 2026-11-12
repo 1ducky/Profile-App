@@ -1,0 +1,23 @@
+---
+import Hero from "../components/frontpage/Hero";
+import Layout from "../layouts/Layout.astro";
+import "../global.css";
+import ProductSection from "../components/frontpage/Product";
+import SocialImpactSection from "../components/frontpage/Social";
+import AboutSection from "../components/frontpage/About";
+import CareerSection from "../components/frontpage/Career";
+import Footer from "../components/frontpage/Footer";
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout>
+	<!-- <Welcome /> -->
+	<Hero portraitSrc="/assets/1.png" backgroundSrc="/assets/2.png" />
+	<ProductSection client:visible />
+	<SocialImpactSection client:visible />
+	<AboutSection client:visible />
+	<CareerSection client:visible />
+
+	<Footer />
+</Layout>

@@ -1,0 +1,145 @@
+---
+/**
+ * Diagram batang generik.
+ *
+ * mode:
+ *  - grouped : batang berdampingan per label (default)
+ *  - stacked : ditumpuk; cocok untuk bagian dari satu total
+ *  - overlay : saling menimpa di posisi sama; cocok bila seri yang satu
+ *              adalah bagian dari seri lain (mis. unik ⊂ total) — JANGAN di-stack
+ *              karena penjumlahannya menyesatkan. Seri pertama digambar paling belakang.
+ */
+import ChartFrame from "./ChartFrame.astro";
+import EmptyChart from "./EmptyChart.astro";
+import {
+    type ChartSeries,
+    resolveSeries,
+    hasData,
+    niceScale,
+    xPositions,
+} from "./type.ts";
+
+interface Props {
+    labels: string[];
+    series: ChartSeries[];
+    mode?: "grouped" | "stacked" | "overlay";
+    height?: number;
+    maxXLabels?: number;
+    showLegend?: boolean;
+    ariaLabel?: string;
+    emptyText?: string;
+    formatTick?: (n: number) => string;
+    formatValue?: (n: number) => string;
+    tooltipNote?: (index: number) => string | undefined;
+}
+const {
+    labels,
+    series: raw,
+    mode = "grouped",
+    height = 240,
+    maxXLabels = 12,
+    showLegend,
+    ariaLabel = "Diagram batang",
+    emptyText,
+    formatTick,
+    formatValue,
+    tooltipNote,
+} = Astro.props;
+
+const ok = hasData(labels, raw);
+const series = resolveSeries(raw);
+const n = labels.length;
+const xs = xPositions(n, "bar");
+const num = (v: number | null | undefined) => (v == null ? 0 : v);
+
+const maxVal = Math.max(
+    0,
+    ...labels.map((_, i) =>
+        mode === "stacked"
+            ? series.reduce((sum, s) => sum + num(s.values[i]), 0)
+            : Math.max(...series.map((s) => num(s.values[i]))),
+    ),
+);
+const scale = niceScale(maxVal);
+const h = (v: number) => (v / scale.max) * 100;
+
+const slot = 100 / n;
+const groupW = slot * 0.68;
+const bars: { x: number; y: number; w: number; h: number; color: string }[] =
+    [];
+labels.forEach((_, i) => {
+    const left = i * slot + (slot - groupW) / 2;
+    let acc = 0;
+    series.forEach((s, si) => {
+        const v = s.values[i];
+        if (v == null) return;
+        if (mode === "grouped") {
+            const w = groupW / series.length;
+            bars.push({
+                x: left + si * w,
+                y: 100 - h(v),
+                w: w * 0.92,
+                h: h(v),
+                color: s.color,
+            });
+        } else if (mode === "stacked") {
+            acc += v;
+            bars.push({
+                x: left,
+                y: 100 - h(acc),
+                w: groupW,
+                h: h(v),
+                color: s.color,
+            });
+        } else {
+            bars.push({
+                x: left,
+                y: 100 - h(v),
+                w: groupW,
+                h: h(v),
+                color: s.color,
+            });
+        }
+    });
+});
+const visibleLegend = showLegend ?? series.length > 1;
+---
+
+{
+    !ok ? (
+        <EmptyChart height={height} text={emptyText} />
+    ) : (
+        <ChartFrame
+            kind="bar"
+            labels={labels}
+            series={series}
+            xs={xs}
+            scale={scale}
+            height={height}
+            band={slot}
+            maxXLabels={maxXLabels}
+            showLegend={visibleLegend}
+            ariaLabel={ariaLabel}
+            formatTick={formatTick}
+            formatValue={formatValue}
+            tooltipNote={tooltipNote}
+        >
+            <svg
+                class="absolute inset-0 size-full"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+            >
+                {bars.map((b) => (
+                    <rect
+                        x={b.x.toFixed(3)}
+                        y={b.y.toFixed(3)}
+                        width={b.w.toFixed(3)}
+                        height={b.h.toFixed(3)}
+                        fill={b.color}
+                    />
+                ))}
+            </svg>
+        </ChartFrame>
+    )
+}

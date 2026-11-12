@@ -1,0 +1,58 @@
+---
+/**
+ * Lebar item dalam grid 12 kolom, per breakpoint (mobile-first):
+ *   base = mobile (<768), md = tablet (≥768), lg = desktop (≥1024)
+ *
+ * Span → jumlah kolom per baris:  12 = 1 · 6 = 2 · 4 = 3 · 3 = 4 · 2 = 6
+ *
+ * Contoh kartu statistik seperti dashboard:
+ *   <GridItem base={6} md={4} lg={3}>  → 2 kolom mobile, 3 tablet, 4 desktop
+ *
+ * Prop yang tidak diisi mewarisi breakpoint di bawahnya (default base = 12).
+ * Class ditulis lengkap (bukan dirakit dinamis) agar terdeteksi Tailwind saat build.
+ */
+type Span = 2 | 3 | 4 | 6 | 8 | 12;
+interface Props {
+    base?: Span;
+    md?: Span;
+    lg?: Span;
+    class?: string;
+    as?: "div" | "article" | "section";
+}
+const { base = 12, md, lg, class: className, as: Tag = "div" } = Astro.props;
+
+const baseMap: Record<Span, string> = {
+    2: "col-span-2",
+    3: "col-span-3",
+    4: "col-span-4",
+    6: "col-span-6",
+    8: "col-span-8",
+    12: "col-span-12",
+};
+const mdMap: Record<Span, string> = {
+    2: "md:col-span-2",
+    3: "md:col-span-3",
+    4: "md:col-span-4",
+    6: "md:col-span-6",
+    8: "md:col-span-8",
+    12: "md:col-span-12",
+};
+const lgMap: Record<Span, string> = {
+    2: "lg:col-span-2",
+    3: "lg:col-span-3",
+    4: "lg:col-span-4",
+    6: "lg:col-span-6",
+    8: "lg:col-span-8",
+    12: "lg:col-span-12",
+};
+---
+
+<Tag
+    class:list={[
+        baseMap[base as Span],
+        md && mdMap[md as Span],
+        lg && lgMap[lg as Span],
+        "min-w-0",
+        className,
+    ]}><slot /></Tag
+>

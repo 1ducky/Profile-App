@@ -1,0 +1,185 @@
+---
+/**
+ * Footer
+ * - 4 kolom: brand + deskripsi + social, Jaringan Disway Network,
+ *   Rubrik Unggulan, Pedoman & Hubungi Kami.
+ * - BEHAVIOR: semua link masih placeholder (#).
+ */
+const network = [
+    "Disway Jateng",
+    "Radar Surabaya",
+    "Radar Tasik",
+    "Disway Jogja",
+    "Banten Raya",
+    "Sumeks Digital",
+    "Pontianak Post",
+];
+
+const rubrik = [
+    { label: "Catatan Dahlan Iskan", path: "kolom" },
+    { label: "Kabar Green Force Persebaya", path: "persebaya" },
+    { label: "Pepatah & Filsafat Tiongkok", path: "pepatah-tiongkok" },
+    { label: "Surabaya Raya & Jatim", path: "jatim" },
+    { label: "K-Wave & Tren Global", path: "korea-wave" },
+    { label: "Indeks Berita Terbaru", path: "indeks" },
+];
+
+const pedoman = [
+    "Pedoman Media Siber",
+    "Susunan Redaksi",
+    "Info Iklan & Kerjasama",
+    "Kebijakan Privasi",
+    "Disclaimer",
+];
+---
+
+<footer class="w-full bg-primary-hover text-surface mt-space-2xl py-10">
+    <div class="max-w-7xl mx-auto px-margin-mobile md:px-margin">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-5">
+            <!-- Brand -->
+            <div class="flex flex-col gap-space-md">
+                <div class="flex items-center gap-space-sm">
+                    <div
+                        class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary font-extrabold text-[14px]"
+                    >
+                        HD
+                    </div>
+                    <span
+                        class="font-headline-sm text-headline-sm font-bold text-surface-container-lowest"
+                    >
+                        HARIAN DISWAY
+                    </span>
+                </div>
+                <p
+                    class="font-body-sm text-body-sm text-surface-container-high leading-relaxed"
+                >
+                    Portal berita independen menyajikan jurnalisme berbobot,
+                    investigasi tajam, dan kolom analisis terpercaya dari Dahlan
+                    Iskan dan tim redaksi Jawa Timur untuk Indonesia.
+                </p>
+                <div class="flex items-center gap-space-sm pt-space-xs">
+                    <a
+                        class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary hover:bg-primary transition-colors"
+                        href="#"
+                        ><span class="material-symbols-outlined text-[16px]"
+                            >p</span
+                        ></a
+                    >
+                    <a
+                        class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary hover:bg-primary transition-colors"
+                        href="#"
+                        ><span class="material-symbols-outlined text-[16px]"
+                            >p</span
+                        ></a
+                    >
+                    <a
+                        class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary hover:bg-primary transition-colors"
+                        href="#"
+                        ><span class="material-symbols-outlined text-[16px]"
+                            >p</span
+                        ></a
+                    >
+                    <a
+                        class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary hover:bg-primary transition-colors"
+                        href="#"
+                        ><span class="material-symbols-outlined text-[16px]"
+                            >p</span
+                        ></a
+                    >
+                </div>
+            </div>
+
+            <!-- Network -->
+            <div class="flex flex-col gap-space-md">
+                <span
+                    class="font-headline-sm text-[16px] text-surface-container-lowest tracking-wide font-bold uppercase"
+                >
+                    Jaringan Disway Network
+                </span>
+                <ul
+                    class="font-meta-caption text-meta-caption space-y-space-sm text-surface-container-high"
+                >
+                    {
+                        network.map((name) => (
+                            <li>
+                                <a
+                                    class="hover:text-tertiary-fixed transition-colors"
+                                    href="#"
+                                >
+                                    {name}
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+
+            <!-- Rubrik -->
+            <div class="flex flex-col gap-space-md">
+                <span
+                    class="font-headline-sm text-[16px] text-surface-container-lowest tracking-wide font-bold uppercase"
+                >
+                    Rubrik Unggulan
+                </span>
+                <ul
+                    class="font-meta-caption text-meta-caption space-y-space-sm text-surface-container-high"
+                >
+                    {
+                        rubrik.map((item) => (
+                            <li>
+                                <a
+                                    class="hover:text-tertiary-fixed transition-colors"
+                                    data-path={item.path}
+                                    href="#"
+                                >
+                                    {item.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+
+            <!-- Pedoman -->
+            <div class="flex flex-col gap-space-md">
+                <span
+                    class="font-headline-sm text-[16px] text-surface-container-lowest tracking-wide font-bold uppercase"
+                >
+                    Pedoman &amp; Hubungi Kami
+                </span>
+                <ul
+                    class="font-meta-caption text-meta-caption space-y-space-sm text-surface-container-high mb-space-sm"
+                >
+                    {
+                        pedoman.map((label) => (
+                            <li>
+                                <a
+                                    class="hover:text-tertiary-fixed transition-colors"
+                                    href="#"
+                                >
+                                    {label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ul>
+                <div
+                    class="font-meta-caption text-meta-caption text-surface-container-high leading-relaxed"
+                >
+                    <span class="font-bold text-surface-container-lowest block"
+                        >Kantor Redaksi:</span
+                    >
+                    Jl. Untung Suropati No. 84, Surabaya, Jawa Timur<br />
+                    Email: redaksi@disway.id | (031) 5678900
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="mt-20 text-center font-meta-caption text-meta-caption text-secondary-fixed"
+        >
+            © 2026 Cak Oyim. Hak Cipta Dilindungi Undang-Undang. Terverifikasi
+            Dewan Pers.
+        </div>
+    </div>
+</footer>

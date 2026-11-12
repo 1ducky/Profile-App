@@ -1,0 +1,168 @@
+---
+/**
+ * Diagram garis generik. Terima label + seri angka, tidak peduli artinya.
+ *
+ * <LineChart labels={['Sen','Sel']} series={[{ key:'a', label:'A', values:[1,2] }]} />
+ */
+import ChartFrame from "./ChartFrame.astro";
+import EmptyChart from "./EmptyChart.astro";
+import {
+    type ChartSeries,
+    resolveSeries,
+    hasData,
+    niceScale,
+    xPositions,
+} from "./type.ts";
+
+interface Props {
+    labels: string[];
+    series: ChartSeries[];
+    height?: number;
+    /** Isi gradasi di bawah garis */
+    area?: boolean;
+    /** Maksimal label sumbu-x yang tampil */
+    maxXLabels?: number;
+    /** Paksa legenda tampil/sembunyi. Default: tampil jika seri > 1 */
+    showLegend?: boolean;
+    ariaLabel?: string;
+    emptyText?: string;
+    formatTick?: (n: number) => string;
+    formatValue?: (n: number) => string;
+    tooltipNote?: (index: number) => string | undefined;
+}
+const {
+    labels,
+    series: raw,
+    height = 120,
+    area = true,
+    maxXLabels = 7,
+    showLegend,
+    ariaLabel = "Diagram garis",
+    emptyText,
+    formatTick,
+    formatValue,
+    tooltipNote,
+} = Astro.props;
+
+const ok = hasData(labels, raw);
+const series = resolveSeries(raw);
+const xs = xPositions(labels.length, "line");
+const scale = niceScale(
+    Math.max(
+        0,
+        ...series.flatMap((s) =>
+            s.values.filter((v): v is number => v != null),
+        ),
+    ),
+);
+const y = (v: number) => 100 - (v / scale.max) * 100;
+const uid = Math.random().toString(36).slice(2, 8);
+
+/** Pecah jadi segmen agar nilai null memutus garis */
+function segments(values: (number | null)[]) {
+    const out: { x: number; y: number }[][] = [];
+    let cur: { x: number; y: number }[] = [];
+    values.forEach((v, i) => {
+        if (v == null) {
+            if (cur.length) out.push(cur);
+            cur = [];
+        } else cur.push({ x: xs[i], y: y(v) });
+    });
+    if (cur.length) out.push(cur);
+    return out;
+}
+const toPath = (pts: { x: number; y: number }[]) =>
+    pts
+        .map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(3)} ${p.y.toFixed(3)}`)
+        .join(" ");
+const toArea = (pts: { x: number; y: number }[]) =>
+    `${toPath(pts)} L${pts[pts.length - 1].x.toFixed(3)} 100 L${pts[0].x.toFixed(3)} 100 Z`;
+
+const shapes = series.map((s, si) => ({ s, si, segs: segments(s.values) }));
+const visibleLegend = showLegend ?? series.length > 1;
+---
+
+{
+    !ok ? (
+        <EmptyChart height={height} text={emptyText} />
+    ) : (
+        <ChartFrame
+            kind="line"
+            labels={labels}
+            series={series}
+            xs={xs}
+            scale={scale}
+            height={height}
+            maxXLabels={maxXLabels}
+            showLegend={visibleLegend}
+            ariaLabel={ariaLabel}
+            formatTick={formatTick}
+            formatValue={formatValue}
+            tooltipNote={tooltipNote}
+        >
+            <svg
+                class="absolute inset-0 size-full overflow-visible"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+            >
+                <defs>
+                    {shapes.map(({ s, si }) => (
+                        <linearGradient
+                            id={`g-${uid}-${si}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
+                            <stop
+                                offset="0%"
+                                stop-color={s.color}
+                                stop-opacity="0.22"
+                            />
+                            <stop
+                                offset="100%"
+                                stop-color={s.color}
+                                stop-opacity="0"
+                            />
+                        </linearGradient>
+                    ))}
+                </defs>
+                {area &&
+                    shapes.map(({ si, segs }) =>
+                        segs.map(
+                            (pts) =>
+                                pts.length > 1 && (
+                                    <path
+                                        d={toArea(pts)}
+                                        fill={`url(#g-${uid}-${si})`}
+                                    />
+                                ),
+                        ),
+                    )}
+                {shapes.map(({ s, segs }) =>
+                    segs.map((pts) =>
+                        pts.length > 1 ? (
+                            <path
+                                d={toPath(pts)}
+                                fill="none"
+                                stroke={s.color}
+                                stroke-width="2"
+                                stroke-linejoin="round"
+                                stroke-linecap="round"
+                                vector-effect="non-scaling-stroke"
+                            />
+                        ) : (
+                            <circle
+                                cx={pts[0].x}
+                                cy={pts[0].y}
+                                r="0.8"
+                                fill={s.color}
+                            />
+                        ),
+                    ),
+                )}
+            </svg>
+        </ChartFrame>
+    )
+}

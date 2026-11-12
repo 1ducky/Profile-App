@@ -1,0 +1,51 @@
+---
+import Footer from "../../components/dashboard/Footer.astro";
+
+import { Shell } from "../../components/dashboard/Sidebar/Sheel";
+import Navbar from "../../components/frontpage/Navbar";
+
+import "../../global.css";
+
+interface Props {
+    title: string;
+    description?: string;
+    /** Sembunyikan footer CTA, mis. untuk halaman dashboard */
+    hideFooter?: boolean;
+}
+const {
+    title,
+    description = "Teknologi untuk manusia, bukan sebaliknya.",
+    hideFooter = false,
+} = Astro.props;
+const pageTitle = `${title} · Puguh Pamungkas`;
+---
+
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content={description} />
+        <title>{pageTitle}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <!-- <a
+            href="#main"
+            class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
+        >
+            Lewati ke konten
+        </a> -->
+        <Navbar />
+        <main id="main" class="flex-1 md:ml-12 md:px-10">
+            <Shell client:load />
+            <slot />
+        </main>
+        <!-- {!hideFooter && <Footer />} -->
+    </body>
+</html>

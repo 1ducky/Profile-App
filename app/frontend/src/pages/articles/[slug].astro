@@ -1,0 +1,98 @@
+---
+import type {
+    ArticleListResponse,
+    ArticleResponse,
+} from "../../contract/article";
+import { GetBySlug, GetListArticle } from "../../app/feature/article";
+import AdsSection from "../../components/Content/Ads";
+import Content from "../../components/Content/Content.astro";
+import GalerySection from "../../components/Content/Galery";
+import VListed from "../../components/Content/VListed.astro";
+import FragmentSection from "../../layouts/Article/Fragment.astro";
+import Layout from "../../layouts/Layout.astro";
+import { ResolveUrlAsset } from "../../utils/resolve-url";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+var article: ArticleResponse | null = null;
+try {
+    article = await GetBySlug(slug || "");
+    console.log(article);
+} catch (e) {
+    console.log(e);
+}
+
+if (!article) {
+    return Astro.redirect("/not-found");
+}
+
+var articlesList: ArticleListResponse | null = null;
+try {
+    articlesList = await GetListArticle({});
+} catch (e) {
+}
+
+// console.log(ResolveUrlAsset(article.cover))
+---
+
+<Layout title={article.title}>
+    <FragmentSection>
+        <main class="mx-auto max-w-4xl px-4 py-10">
+            <header class="mb-8">
+                <p>{article.category}</p>
+                <h1 class="text-3xl font-bold">{article.title}</h1>
+                <p>{article.excerpt}</p>
+                <p class="mt-4 text-sm">
+                    Oleh {article.author.username}
+                </p>
+                <img
+                    src={ResolveUrlAsset(article.cover)}
+                    alt={article.title}
+                    class="mt-4 w-full px-3"
+                />
+            </header>
+
+            <Content content={article.content || ""} />
+            <!-- {
+                article.related?.map((article) => (
+                    <>
+                        <span>Baca Juga</span>
+                        <a href={`/articles/${article.slug}`}>
+                            {article.title}
+                        </a>
+                    </>
+                ))
+            } -->
+        </main>
+        {
+            articlesList && (
+                <div class="" slot="sidebar">
+                    <div class="aspect-4/3">
+                        <GalerySection
+                            galery={articlesList.articles.slice(0, 5)}
+                            client:visible
+                        />
+                    </div>
+                    <AdsSection>
+                        <VListed
+                            articles={articlesList.articles}
+                            client:visible
+                        />
+                    </AdsSection>
+                </div>
+            )
+        }
+    </FragmentSection>
+    <FragmentSection>
+        {articlesList && (
+
+            <VListed articles={articlesList.articles} client:visible />
+            <div class="" slot="sidebar">
+                <AdsSection>
+                    <VListed articles={articlesList.articles} client:visible />
+                </AdsSection>
+            </div>
+        )}
+    </FragmentSection>
+</Layout>

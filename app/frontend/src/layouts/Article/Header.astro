@@ -1,0 +1,148 @@
+---
+/**
+ * Header
+ * - Fixed top, 3 baris: top bar (36px) + brand row (108px) + nav (48px) = 192px (--header-h).
+ * - Menerima activePath untuk menandai menu aktif.
+ *
+ * BEHAVIOR NOTES (belum diimplementasikan):
+ * - "Disway Network" button: klik → buka dropdown daftar jaringan (belum ada komponen).
+ * - Search input: submit → navigasi ke /search?q=... (belum ada handler).
+ * - "Kirim Opini" button: klik → mailto:redaksi@disway.id.
+ * - Nav: horizontal scroll di mobile; active item ditandai via prop activePath.
+ * - Social icons: link eksternal (placeholder #).
+ */
+export interface NavItem {
+    label: string;
+    path: string;
+}
+
+interface Props {
+    activePath?: string;
+    navItems?: NavItem[];
+}
+
+const defaultNav: NavItem[] = [
+    { label: "BERITA UTAMA", path: "berita-utama" },
+    { label: "JATIM", path: "jatim" },
+    { label: "PERSEBAYA", path: "persebaya" },
+    { label: "SEPAK BOLA", path: "sepak-bola" },
+    { label: "KOREA WAVE", path: "korea-wave" },
+    { label: "FEATURES", path: "features" },
+    { label: "PEPATAH TIONGKOK", path: "pepatah-tiongkok" },
+    { label: "ALL SPORTS", path: "all-sports" },
+    { label: "ENTERTAINMENT", path: "entertainment" },
+    { label: "LIFESTYLE", path: "lifestyle" },
+    { label: "KOLOM", path: "kolom" },
+    { label: "INDEKS", path: "indeks" },
+];
+
+const { activePath = "feature", navItems = defaultNav } = Astro.props;
+---
+
+<header
+    class="bg-primary text-white backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+>
+    <div
+        class="h-50 flex flex-col justify-between max-w-310 mx-auto px-margin-mobile md:px-margin"
+    >
+        <!-- ============ TOP BAR (36px) ============ -->
+
+        <!-- ============ BRAND ROW (108px) ============ -->
+        <div
+            class="h-27 py-space-sm flex items-center justify-between gap-space-lg"
+        >
+            <!-- Center search + trending (hidden di mobile) -->
+            <div
+                class="flex-1 max-w-xl mx-auto lg:flex hidden flex-col gap-space-xs"
+            >
+                <form
+                    class="relative flex items-center w-full bg-surface rounded-xl px-2 py-space-xs"
+                >
+                    <input
+                        class="w-full bg-transparent border-0 text-on-surface font-body-sm text-body-sm placeholder:text-text-muted focus:outline-none"
+                        placeholder="Cari berita terkini..."
+                        type="text"
+                        name="q"
+                    />
+                    <!-- BEHAVIOR: submit → navigasi ke /search?q=<input> -->
+                    <button
+                        type="submit"
+                        class="p-space-xs rounded-lg text-primary hover:bg-surface-container-high transition-colors flex items-center justify-center"
+                        aria-label="Cari"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >search</span
+                        >
+                    </button>
+                </form>
+                <div
+                    class="flex items-center gap-space-xs font-meta-caption text-meta-caption text-surface truncate"
+                >
+                    <span class="font-bold text-secondary shrink-0"
+                        >Trending:</span
+                    >
+                    <a class="hover:text-text-muted transition-colors" href="#"
+                        >#BallonDor2026</a
+                    >
+                    <a class="hover:text-text-muted transition-colors" href="#"
+                        >#IKNTiongkok</a
+                    >
+                    <a class="hover:text-text-muted transition-colors" href="#"
+                        >#Demo28Oktober</a
+                    >
+                    <a class="hover:text-text-muted transition-colors" href="#"
+                        >#Persebaya</a
+                    >
+                </div>
+            </div>
+
+            <!-- Right actions -->
+            <div class="flex items-center gap-space-md shrink-0">
+                <!-- BEHAVIOR: klik → mailto:redaksi@disway.id -->
+                <a
+                    href="mailto:redaksi@disway.id"
+                    class="hidden sm:flex items-center gap-space-xs px-space-md py-space-xs rounded-xl bg-surface-container text-on-surface font-title-editorial text-[14px] hover:bg-primary-container hover:text-on-primary transition-all"
+                >
+                    <span class="material-symbols-outlined text-[18px]">1</span>
+                    Kirim Opini
+                </a>
+                <div
+                    class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+                >
+                    <span
+                        class="material-symbols-outlined text-on-primary text-[18px]"
+                        >p</span
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ NAV (48px) ============ -->
+        <!-- BEHAVIOR: horizontal scroll di mobile; item aktif ditandai via activePath -->
+        <nav
+            class="h-12 flex items-center gap-5 overflow-x-auto whitespace-nowrap scrollbar-none font-label-badge text-label-badge tracking-wider uppercase text-on-surface-variant"
+        >
+            {
+                navItems.map((item, i) => {
+                    const isActive = activePath
+                        ? item.path == activePath
+                        : i == 0;
+                    const base = "py-space-sm transition-colors";
+                    const cls = isActive
+                        ? `${base} text-surface font-extrabold shadow-[inset_0_-3px_0_0_#9e001f]`
+                        : `${base} text-muted hover:text-surface`;
+                    return (
+                        <a
+                            class={cls}
+                            data-path={item.path}
+                            href={`/articles?category=${item.path}`}
+                            aria-current={isActive ? "page" : undefined}
+                        >
+                            {item.label}
+                        </a>
+                    );
+                })
+            }
+        </nav>
+    </div>
+</header>

@@ -1,0 +1,144 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: profile-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - profile_db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - profile-app-network
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - root
+        - -p${DB_PASSWORD}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  s3Service:
+    image: rustfs/rustfs:latest
+    container_name: S3Services
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+    volumes:
+      - s3_storage:/data
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
+    networks:
+      - profile-app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9000/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Opsional: membuat bucket otomatis saat startup
+  s3-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      s3Service:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY}
+      AWS_DEFAULT_REGION: ${STORAGE_REGION}
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+    entrypoint: >
+      /bin/sh -c " aws --endpoint-url http://s3Service:9000 s3api head-bucket --bucket $${STORAGE_BUCKET} 2>/dev/null || aws --endpoint-url http://s3Service:9000 s3api create-bucket --bucket $${STORAGE_BUCKET} && echo 'Bucket siap' "
+    networks:
+      - profile-app-network
+    restart: "no"
+
+  migration:
+    image: mysql:latest
+    profiles:
+      - tools
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_PWD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+    volumes:
+      - ./app/backend/infra/db/schema:/migrations:ro
+    networks:
+      - profile-app-network
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        mysql \
+          -h mysql \
+          -u "$$MYSQL_USER" \
+          "$$MYSQL_DATABASE" \
+          < /migrations/000_initial.sql
+
+  api:
+    image: backend-profile:latest
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: backend-profile
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      s3Service:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - profile-app-network
+
+  frontend:
+    image: frontend-profile:latest
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: frontend-profile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4321
+      API_URL: ${API_URL}
+      APP_ORIGIN: ${APP_ORIGIN}
+    depends_on:
+      - api
+    ports:
+      - "4321:4321"
+    networks:
+      - profile-app-network
+
+volumes:
+  profile_db:
+    external: true
+    name: profile_db
+  s3_storage:
+    external: true
+    name: s3_storage
+
+networks:
+  profile-app-network:
+    driver: bridge
