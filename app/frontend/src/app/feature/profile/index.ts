@@ -6,6 +6,15 @@ export function createProfileApi(api: ApiClient) {
         getProfile() {
             return api.get<ProfileResponse>("/profile");
         },
+        getProfileByID(id:string) {
+            return api.get<ProfileResponse>("/profile/"+id);
+        },
+        updateProfile() {
+            return api.get<ProfileResponse>("/profile");
+        },
+        updateAvatar() {
+            return api.get<ProfileResponse>("/profile/avatar");
+        },
 
     };
 }

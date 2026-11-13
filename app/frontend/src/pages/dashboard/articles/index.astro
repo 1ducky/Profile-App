@@ -10,12 +10,15 @@ import type {
 import { ArticleManagementLayout } from "../../../layouts/dashboard/ArticleManagement";
 import Layout from "../../../layouts/Layout.astro";
 import { ApiError } from "../../../lib/api/error";
-import { ArticleManage } from "./_manage";
+import CategoryManager, { ArticleManage } from "./_manage";
 import type { ProfileResponse } from "../../../contract/profile";
 import { profile } from "node:console";
+import { createCategoryApi } from "../../../app/feature/category";
+import type { categoryResponse } from "../../../app/feature/category/type";
 
 let Article: ArticleListResponse | null = null;
 let Profile: ProfileResponse | null = null;
+let category: categoryResponse[] | null = null;
 let isLogin :boolean = false
 let debug : UserSession | null = null 
 
@@ -28,10 +31,11 @@ try {
         return Astro.redirect("/articles");
     }
     isLogin = true
-    const[ArticleRes,ProfileRes] = await Promise.all( [GetListArticle({ authorId: sessionRes.data.id }), createProfileApi(api).getProfile()] )
+    const[ArticleRes,ProfileRes,CategoryRes] = await Promise.all( [GetListArticle({ authorId: sessionRes.data.id }), createProfileApi(api).getProfile(),createCategoryApi(api).getCategory()] )
 
     Article = ArticleRes;
     Profile = ProfileRes.data
+    category = CategoryRes.data
 } catch (e) {
     if (e instanceof ApiError) {
         if (e.statusCode == 401) {
@@ -49,5 +53,6 @@ console.log(debug)
 <Layout>
     <ArticleManagementLayout client:only="react" Profile={Profile}>
         <ArticleManage articles={Article.articles} client:visible />
+        <CategoryManager initialCategories={category || []} client:visible/>
     </ArticleManagementLayout>
 </Layout>
