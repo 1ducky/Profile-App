@@ -256,7 +256,7 @@ func (a *ArticleApp) CreateCategory(ctx context.Context, userID string, slug str
 	}
 	return a.artc.CreateCategory(ctx, slug)
 }
-func (a *ArticleApp) Delete(ctx context.Context, userID string, id string) error {
+func (a *ArticleApp) DeleteCategory(ctx context.Context, userID string, id string) error {
 	if userID == "" {
 		return auth.ErrUnauthorized
 	}

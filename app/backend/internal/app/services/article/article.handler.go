@@ -189,9 +189,9 @@ func (h *Handler) DeleteCategory(w http.ResponseWriter, r *http.Request) error {
 		return article.ErrUnauthenticated
 	}
 
-	a, err := h.app.CreateCategory(r.Context(), auth.ID, r.PathValue(CATEGORYKEY))
+	err := h.app.DeleteCategory(r.Context(), auth.ID, r.PathValue(CATEGORYKEY))
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(transport.Response[article.CategoryEntity]{Status: transport.StatusSuccess, Data: *a})
+	return json.NewEncoder(w).Encode(transport.Response[map[string]string]{Status: transport.StatusSuccess, Data: map[string]string{"message": "Berhasil DiHapus"}})
 }
