@@ -1,8 +1,11 @@
 package assets
 
 import (
+	"errors"
 	"io"
+	"path"
 	"path/filepath"
+	"strings"
 )
 
 func (l *Usecase) resolvePath(dir AssetCategory, fileName string) (string, error) {
@@ -27,4 +30,21 @@ func (l *Usecase) limitReader(reader io.Reader, maxSize int64) io.Reader {
 		return reader
 	}
 	return io.LimitReader(reader, maxSize+1)
+}
+
+func NewFileKey(raw string) (string, error) {
+	if raw == "" {
+		return "", errors.New("file key kosong")
+	}
+
+	k := strings.ReplaceAll(raw, `\`, "/") // "\" -> "/" di semua OS
+	k = path.Clean(k)                      // rapikan "//", "./", dan "a/../b"
+	k = strings.TrimPrefix(k, "/")         // pastikan relatif
+
+	// cegah path traversal
+	if k == "." || k == ".." || strings.HasPrefix(k, "../") {
+		return "", errors.New("file key tidak valid")
+	}
+
+	return k, nil
 }

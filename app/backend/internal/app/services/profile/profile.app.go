@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	assetApp "profile-template/internal/app/services/assets"
 	"profile-template/internal/app/uow"
 	"profile-template/internal/assets"
 	"profile-template/internal/contextapp"
 	"profile-template/internal/profile"
+	"strings"
 )
 
 type TXUsecase struct {
@@ -56,23 +58,21 @@ func (p *ProfileApp) UpdateProfile(ctx context.Context, req UpdateProfileRequest
 	return nil
 }
 
-func (p *ProfileApp) UploadAvatar(ctx context.Context, req UploadAvatarRequest) (profileAvatarResource, error) {
-	if req.id == "" {
+func (p *ProfileApp) UploadAvatar(ctx context.Context, userID string, filekey string) (profileAvatarResource, error) {
+	cleanFilekey := p.clearToValidFileKey(filekey)
+	if userID == "" || cleanFilekey == "" {
 		return profileAvatarResource{}, profile.ErrNotFound
 	}
+	fmt.Println("app: " + cleanFilekey)
 	var AssetInfo assets.AssetMetaData
 	err := p.uow.Do(ctx, func(ctx context.Context, r TXUsecase) error {
-		res, err := r.Asset.Upload(ctx, req.reader, assets.UploadPolicy{Category: assets.CategoryProfile, MaxSize: 2 * assets.MB, UserID: req.id})
+		err := r.Profile.UploadAvatar(ctx, userID, cleanFilekey)
 		if err != nil {
 			return err
 		}
-		AssetInfo = res
-		err = r.Profile.UploadAvatar(ctx, req.id, res.FileKey)
-		if err != nil {
-			return err
-		}
-		err = r.Asset.ReleaseByParentID(ctx, []string{req.id})
-		err = r.Asset.LinkingAsset(ctx, []string{res.ID}, req.id)
+		_ = r.Asset.ReleaseByParentID(ctx, []string{userID})
+		fmt.Println("Release Assets")
+		err = r.Asset.LinkingAssetByFileKeys(ctx, []string{filekey}, userID)
 		return err
 	})
 
@@ -81,4 +81,8 @@ func (p *ProfileApp) UploadAvatar(ctx context.Context, req UploadAvatarRequest) 
 	fmt.Print(AssetInfo)
 
 	return profileAvatarResource{Metadata: AssetInfo, Avatar: AssetInfo.FileKey}, err
+}
+
+func (a *ProfileApp) clearToValidFileKey(filekey string) string {
+	return filepath.FromSlash(strings.TrimPrefix(filekey, assetApp.PREFIX))
 }

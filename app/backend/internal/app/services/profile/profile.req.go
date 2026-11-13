@@ -12,3 +12,7 @@ type UploadAvatarRequest struct {
 	id     string
 	reader io.Reader
 }
+
+type UploadAvatar struct {
+	FileKey string `json:"filekey"`
+}

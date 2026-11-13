@@ -2,14 +2,15 @@ package profile
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"log"
 	"net/http"
-	"profile-template/internal/assets"
+
 	"profile-template/internal/auth"
 	"profile-template/internal/contextapp"
 	"profile-template/internal/profile"
 	"profile-template/internal/transport"
+	"profile-template/internal/utils"
 )
 
 type Handler struct {
@@ -70,22 +71,12 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) error {
 	if !ok {
 		return auth.ErrUnauthorized
 	}
-	r.Body = http.MaxBytesReader(w, r.Body, 3*assets.MB)
-
-	// 2. Ambil file dari form field bernama "file"
-	file, header, err := r.FormFile("avatar")
-	if err != nil {
-		http.Error(w, "file tidak ditemukan: "+err.Error(), http.StatusBadRequest)
+	var body UploadAvatar
+	if err := utils.DecodeJSON(w, r, &body, 1048576); err != nil {
 		return profile.ErrInvalidAvatar
 	}
-	defer file.Close()
-
-	// file adalah multipart.File, sudah memenuhi io.Reader
-	// header berisi metadata: header.Filename, header.Size, header.Header
-	fmt.Println(header.Filename, header.Size)
-
 	// 3. Pakai sebagai io.Reader
-	res, err := h.app.UploadAvatar(r.Context(), UploadAvatarRequest{id: user.ID, reader: file})
+	res, err := h.app.UploadAvatar(r.Context(), user.ID, body.FileKey)
 	if err != nil {
 		return err
 	}

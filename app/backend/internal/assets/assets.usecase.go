@@ -56,7 +56,10 @@ func (u *Usecase) Upload(ctx context.Context, r io.Reader, upload UploadPolicy) 
 	if err != nil {
 		return AssetMetaData{}, err
 	}
-	entity.FileKey = fullpath
+	entity.FileKey, err = NewFileKey(fullpath)
+	if err != nil {
+		return AssetMetaData{}, ErrAssetInvalidPath
+	}
 	// Record
 	err = u.AssetRepo.Record(ctx, RecordPayload{ID: entity.ID, Status: entity.Status, FileKey: entity.FileKey, Filename: entity.Filename, Mime: entity.Mime, AuthorID: entity.AuthorID, Category: entity.Category})
 	if err != nil {
@@ -132,11 +135,15 @@ func (u *Usecase) Delete(ctx context.Context, payload DeletePayload) error {
 	return nil
 }
 func (u *Usecase) Read(ctx context.Context, url string) (io.ReadCloser, error) {
-	if url == "" {
-		log.Print(url)
+	normalized, err := NewFileKey(url)
+	if err != nil {
 		return nil, ErrAssetNotFound
 	}
-	res, err := u.StorageRepo.Read(ctx, url)
+	if normalized == "" {
+		log.Print(normalized)
+		return nil, ErrAssetNotFound
+	}
+	res, err := u.StorageRepo.Read(ctx, normalized)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +171,15 @@ func (u *Usecase) LinkingAsset(ctx context.Context, assetIDs []string, parentID 
 	return nil
 }
 func (u *Usecase) LinkingAssetByFileKeys(ctx context.Context, fileKeys []string, parentID string) error {
-	md, err := u.AssetRepo.GetByFileKeys(ctx, fileKeys)
+	NormalizedfileKeys := []string{}
+	for _, item := range fileKeys {
+		Normalized, err := NewFileKey(item)
+		if err != nil {
+			return ErrAssetNotFound
+		}
+		NormalizedfileKeys = append(NormalizedfileKeys, Normalized)
+	}
+	md, err := u.AssetRepo.GetByFileKeys(ctx, NormalizedfileKeys)
 	if err != nil {
 		return err
 	}
@@ -214,7 +229,12 @@ func (u *Usecase) ReleaseByParentID(ctx context.Context, parentID []string) erro
 func (u *Usecase) ReleaseByFileKeys(ctx context.Context, fileKeys []string) error {
 	validFileKeys := utils.MapField(fileKeys, func(s string) (string, bool) {
 		if s != "" {
-			return s, true
+			Normalized, err := NewFileKey(s)
+			if err != nil {
+				return "", false
+			}
+			return Normalized, true
+
 		}
 		return "", false
 	})
