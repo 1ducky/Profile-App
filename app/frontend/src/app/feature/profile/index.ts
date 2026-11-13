@@ -1,5 +1,5 @@
 import type { ApiClient } from "../../../lib/api/api-client";
-import type { ProfileResponse } from "./type";
+import type { ProfileResponse, UpdateProfileRequest } from "./type";
 
 export function createProfileApi(api: ApiClient) {
     return {
@@ -9,11 +9,11 @@ export function createProfileApi(api: ApiClient) {
         getProfileByID(id:string) {
             return api.get<ProfileResponse>("/profile/"+id);
         },
-        updateProfile() {
-            return api.get<ProfileResponse>("/profile");
+        updateProfile(req : UpdateProfileRequest) {
+            return api.patch<ProfileResponse>("/profile",req);
         },
-        updateAvatar() {
-            return api.get<ProfileResponse>("/profile/avatar");
+        updateAvatar(filekey:string) {
+            return api.post<ProfileResponse>("/profile/avatar",{filekey});
         },
 
     };

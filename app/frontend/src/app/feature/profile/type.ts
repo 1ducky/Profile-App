@@ -4,3 +4,8 @@ export interface ProfileResponse {
     avatar: string,
     bio: string,
 }
+export interface UpdateProfileRequest {
+    username: string,
+    tag: string,
+    bio: string,
+}

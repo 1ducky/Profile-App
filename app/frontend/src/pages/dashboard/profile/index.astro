@@ -1,0 +1,42 @@
+---
+import { createAuthApi } from "../../../app/feature/auth";
+import { createProfileApi } from "../../../app/feature/profile";
+import type { ProfileResponse } from "../../../app/feature/profile/type";
+import { ArticleManagementLayout } from "../../../layouts/dashboard/ArticleManagement";
+import Layout from "../../../layouts/Layout.astro";
+import { createApi } from "../../../lib/api/api-client";
+import { ApiError } from "../../../lib/api/error";
+import {MiniProfile} from "./_miniForm"
+let Profile: ProfileResponse | null = null;
+let isLogin :boolean = false
+
+const cookie = Astro.request.headers.get("cookie") || "";
+console.log(cookie)
+try {
+    const api = createApi({cookie:cookie})
+    const sessionRes = await createAuthApi(api).session();
+    if (sessionRes.data.id == "") {
+        return Astro.redirect("/articles");
+    }
+    isLogin = true
+    const ProfileRes = await  createProfileApi(api).getProfile()
+
+    Profile = ProfileRes.data
+} catch (e) {
+    if (e instanceof ApiError) {
+        if (e.statusCode == 401) {
+            console.log("Tidak Login");
+            return Astro.redirect("/articles");
+        }
+        console.log(e)
+    }
+}
+if ( !isLogin || !Profile) return Astro.redirect("/notfound");
+
+---
+
+<Layout>
+    <ArticleManagementLayout client:only="react" Profile={Profile}>
+        <MiniProfile profile={Profile} client:visible/>
+    </ArticleManagementLayout>
+</Layout>
