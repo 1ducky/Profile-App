@@ -3,6 +3,7 @@ import { Sidebar } from "../../components/dashboard/Article/Sidebar";
 import { IconButton } from "../../components/global/primitive/button";
 import { Bell, Menu, Search } from "lucide-react";
 import type { ProfileResponse } from "../../contract/profile";
+import { ResolveUrlAsset } from "../../utils/resolve-url";
 
 export function ArticleManagementLayout({ children,Profile }: { children: React.ReactNode,Profile: ProfileResponse  }) {
     const [drawer, setDrawer] = useState(false);
@@ -52,7 +53,7 @@ export function ArticleManagementLayout({ children,Profile }: { children: React.
         >
             {Profile.avatar != "" ? (
                 <img
-                    src={Profile.avatar}
+                    src={ResolveUrlAsset(Profile.avatar)}
                     alt={Profile.username}
                     className="h-full w-full object-cover"
                 />

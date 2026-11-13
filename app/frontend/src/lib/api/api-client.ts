@@ -1,4 +1,5 @@
 
+import { API_URL } from "../../config/env";
 import { ApiError } from "./error";
 import type { ApiResponse, ErrorResponse } from "./types";
 
@@ -17,7 +18,8 @@ function getApiBase(): string {
         return "/api";
     }
 
-    const base = process.env.API_URL;
+    const base = API_URL
+    console.log(typeof base)
 
     if (!base) {
         throw new Error("API_URL is not configured");

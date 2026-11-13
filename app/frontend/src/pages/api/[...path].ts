@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
+import { API_URL, APP_ORIGIN } from "../../config/env";
 
-const API_URL = process.env.API_URL || "";
-const APP_ORIGIN = process.env.APP_ORIGIN || "";
+
 
 const ALLOWED_METHODS = new Set([
     "GET",
