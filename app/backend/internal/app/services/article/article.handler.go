@@ -2,6 +2,7 @@ package article
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"profile-template/internal/article"
@@ -174,7 +175,8 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) error {
 	if err := utils.DecodeJSON(w, r, &body, article.MAXSIZEREAD); err != nil {
 		return article.ErrBadRequest
 	}
-	a, err := h.app.CreateCategory(r.Context(), auth.ID, body.slug)
+	fmt.Print("handler: " + body.Slug)
+	a, err := h.app.CreateCategory(r.Context(), auth.ID, body.Slug)
 	if err != nil {
 		return err
 	}

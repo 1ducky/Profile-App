@@ -1,7 +1,7 @@
 package article
 
 type CreateCategory struct {
-	slug string
+	Slug string `json:"slug"`
 }
 
 const CATEGORYKEY string = "id"
