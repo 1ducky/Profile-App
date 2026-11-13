@@ -7,6 +7,7 @@ import (
 	profileApp "profile-template/internal/app/services/profile"
 	"profile-template/internal/app/uow"
 	"profile-template/internal/article"
+	"profile-template/internal/article/category"
 	"profile-template/internal/assets"
 	"profile-template/internal/auth"
 	"profile-template/internal/auth/credential"
@@ -56,7 +57,7 @@ func buildProfileCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[
 func buildArticleCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[articleApp.TXUsecase] {
 	return uow.NewUoW(persistent, func(tx db.DBTX) articleApp.TXUsecase {
 		return articleApp.TXUsecase{
-			Article: article.NewUsecase(article.NewMySQLRepository(tx)),
+			Article: article.NewUsecase(article.NewMySQLRepository(tx), category.NewRepository(tx)),
 			Asset:   assets.NewUsecase(conf.StorageConfig, nil, assets.NewMysqlRepo(tx)),
 		}
 	})

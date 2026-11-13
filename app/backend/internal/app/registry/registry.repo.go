@@ -2,6 +2,7 @@ package registry
 
 import (
 	"profile-template/internal/article"
+	"profile-template/internal/article/category"
 	"profile-template/internal/assets"
 	"profile-template/internal/auth"
 	"profile-template/internal/auth/credential"
@@ -18,6 +19,7 @@ type RegisterRepo struct {
 	Profile          profile.RepoContract
 	Assets           assets.AssetRepository
 	Article          article.ArticlaeRepositoryContract
+	ArticleCategory  article.CategoryRepositoryContract
 	BucketPersistent assets.RepositoryContract
 }
 
@@ -30,5 +32,6 @@ func NewRegisterRepo(persistent RegisterPersistent, conf config.AppConfig) Regis
 		Assets:           assets.NewMysqlRepo(persistent.DB),
 		Article:          article.NewMySQLRepository(persistent.DB),
 		BucketPersistent: persistent.Bucket,
+		ArticleCategory:  category.NewRepository(persistent.DB),
 	}
 }

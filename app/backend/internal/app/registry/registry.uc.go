@@ -24,6 +24,6 @@ func buildRegisterUC(repos RegisterRepo, conf config.AppConfig) RegisterUC {
 		auth:    auth.NewAuthService(repos.Cred, repos.Token, repos.Session),
 		profile: profile.NewUsecase(repos.Profile),
 		assets:  assets.NewUsecase(conf.StorageConfig, repos.BucketPersistent, repos.Assets),
-		Article: article.NewUsecase(repos.Article),
+		Article: article.NewUsecase(repos.Article, repos.ArticleCategory),
 	}
 }

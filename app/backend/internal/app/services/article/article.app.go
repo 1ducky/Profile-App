@@ -8,6 +8,7 @@ import (
 	"profile-template/internal/app/uow"
 	"profile-template/internal/article"
 	"profile-template/internal/assets"
+	"profile-template/internal/auth"
 	"profile-template/internal/profile"
 	"profile-template/internal/utils"
 	"strings"
@@ -244,6 +245,22 @@ func (a *ArticleApp) GetListArticle(ctx context.Context, req article.ListInput) 
 		Articles: responses.Articles,
 		Meta:     Metadata,
 	}, nil
+}
+
+func (a *ArticleApp) GetAllCategory(ctx context.Context) ([]article.CategoryEntity, error) {
+	return a.artc.GetAllCategory(ctx)
+}
+func (a *ArticleApp) CreateCategory(ctx context.Context, userID string, slug string) (*article.CategoryEntity, error) {
+	if userID == "" {
+		return nil, auth.ErrUnauthorized
+	}
+	return a.artc.CreateCategory(ctx, slug)
+}
+func (a *ArticleApp) Delete(ctx context.Context, userID string, id string) error {
+	if userID == "" {
+		return auth.ErrUnauthorized
+	}
+	return a.artc.DeleteCategory(ctx, id)
 }
 
 func (a *ArticleApp) clearToValidFileKey(filekey string) string {

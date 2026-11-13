@@ -19,3 +19,8 @@ type ListArticleResponses struct {
 	Articles []ArticleResponse `json:"articles"`
 	Meta     article.ListMeta  `json:"meta"`
 }
+
+type CategoryResponse struct {
+	ID   string `json:"id"`
+	Slug string `json:"slug"`
+}

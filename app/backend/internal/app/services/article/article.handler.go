@@ -156,3 +156,40 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) error {
 	// })
 	return json.NewEncoder(w).Encode(transport.Response[ListArticleResponses]{Status: transport.StatusSuccess, Data: out})
 }
+
+func (h *Handler) GetListCategory(w http.ResponseWriter, r *http.Request) error {
+	a, err := h.app.GetAllCategory(r.Context())
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(transport.Response[[]article.CategoryEntity]{Status: transport.StatusSuccess, Data: a})
+}
+
+func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) error {
+	auth, ok := contextapp.GetAuth(r.Context())
+	if !ok {
+		return article.ErrUnauthenticated
+	}
+	var body CreateCategory
+	if err := utils.DecodeJSON(w, r, &body, article.MAXSIZEREAD); err != nil {
+		return article.ErrBadRequest
+	}
+	a, err := h.app.CreateCategory(r.Context(), auth.ID, body.slug)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(transport.Response[article.CategoryEntity]{Status: transport.StatusSuccess, Data: *a})
+}
+
+func (h *Handler) DeleteCategory(w http.ResponseWriter, r *http.Request) error {
+	auth, ok := contextapp.GetAuth(r.Context())
+	if !ok {
+		return article.ErrUnauthenticated
+	}
+
+	a, err := h.app.CreateCategory(r.Context(), auth.ID, r.PathValue(CATEGORYKEY))
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(transport.Response[article.CategoryEntity]{Status: transport.StatusSuccess, Data: *a})
+}

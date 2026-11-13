@@ -45,6 +45,11 @@ type ArticleUsecaseContract interface {
 
 	// List mengembalikan daftar artikel dengan pagination.
 	List(ctx context.Context, in ListInput) (*ListOutput, error)
+
+	// Category Usecase
+	GetAllCategory(ctx context.Context) ([]CategoryEntity, error)
+	CreateCategory(ctx context.Context, slug string) (*CategoryEntity, error)
+	DeleteCategory(ctx context.Context, id string) error
 }
 
 // Repository adalah contract CRUD untuk category.

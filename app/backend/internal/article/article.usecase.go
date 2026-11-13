@@ -11,11 +11,12 @@ import (
 )
 
 type usecase struct {
-	repo ArticlaeRepositoryContract
+	repo     ArticlaeRepositoryContract
+	category CategoryRepositoryContract
 }
 
-func NewUsecase(repo ArticlaeRepositoryContract) ArticleUsecaseContract {
-	return &usecase{repo: repo}
+func NewUsecase(repo ArticlaeRepositoryContract, category CategoryRepositoryContract) ArticleUsecaseContract {
+	return &usecase{repo: repo, category: category}
 }
 
 // ---------- Create ----------
@@ -111,24 +112,6 @@ func (uc *usecase) Update(ctx context.Context, in UpdateInput) error {
 		req.Content = in.Content
 	}
 
-	// if in.Slug != nil {
-	// 	// s := slugify(*in.Slug)
-	// 	// if s == "" {
-	// 	// 	return invalid("slug cannot be empty")
-	// 	// }
-	// 	if slug != "" {
-	// 		taken, err := uc.repo.ExistsBySlug(ctx, slug, in.ID)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		if taken {
-	// 			return ErrDuplicateSlug
-	// 		}
-	// 		// u := articleURL(s)
-	// 		// req.Slug = &s
-	// 		// req.URL = &u // URL harus ikut berubah saat slug berubah
-	// 	}
-	// }
 	fmt.Println("usecase req:", *req.URL)
 	return uc.repo.Update(ctx, req)
 }
@@ -201,4 +184,27 @@ func (uc *usecase) List(ctx context.Context, in ListInput) (*ListOutput, error) 
 		return nil, err
 	}
 	return &ListOutput{Items: items, Total: total, Page: req.Page, PageSize: req.PageSize}, nil
+}
+
+func (uc *usecase) GetAllCategory(ctx context.Context) ([]CategoryEntity, error) {
+	return uc.category.GetAll(ctx)
+}
+
+func (uc *usecase) CreateCategory(ctx context.Context, slug string) (*CategoryEntity, error) {
+	if slug == "" {
+		return &CategoryEntity{}, ErrInvalidInput
+	}
+	id := uuid.NewString()
+	err := uc.category.Create(ctx, &CategoryEntity{ID: id, Slug: slug})
+	if err != nil {
+		return &CategoryEntity{}, err
+	}
+	return &CategoryEntity{ID: id, Slug: slug}, nil
+}
+
+func (uc *usecase) DeleteCategory(ctx context.Context, id string) error {
+	if id == "" {
+		return ErrInvalidID
+	}
+	return uc.category.Delete(ctx, id)
 }
