@@ -1,7 +1,5 @@
 package profile
 
-import "profile-template/internal/assets"
-
 type ProfileResource struct {
 	Username string `json:"username"`
 	Tag      string `json:"tag"`
@@ -10,6 +8,5 @@ type ProfileResource struct {
 }
 
 type profileAvatarResource struct {
-	Avatar   string               `json:"avatar"`
-	Metadata assets.AssetMetaData `json:"metadata"`
+	Avatar string `json:"avatar"`
 }
