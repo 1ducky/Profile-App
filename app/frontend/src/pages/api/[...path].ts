@@ -13,9 +13,6 @@ const ALLOWED_METHODS = new Set([
 
 export const ALL: APIRoute = async ({ request }) => {
     const method = request.method;
-    console.log("Backend",API_URL)
-    console.log("Frontend",APP_ORIGIN)
-    console.log("fullpath",API_URL+request.url)
 
     if (!ALLOWED_METHODS.has(method)) {
         return new Response(null, {

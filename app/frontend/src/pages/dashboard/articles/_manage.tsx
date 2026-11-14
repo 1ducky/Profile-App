@@ -206,7 +206,7 @@ export default function CategoryManager({
           </p>
         </div>
       ) : (
-        <ul className="mt-6 flex flex-col gap-2">
+        <ul className="mt-6 flex flex-row flex-wrap gap-2">
           {categories.map((category) => (
             <li
               key={category.id}

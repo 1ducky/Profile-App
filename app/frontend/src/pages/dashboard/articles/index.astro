@@ -50,7 +50,7 @@ if (!Article || !isLogin || !Profile) return Astro.redirect("/notfound");
 
 <Layout>
     <ArticleManagementLayout client:only="react" Profile={Profile}>
-        <ArticleManage articles={Article.articles} client:visible />
         <CategoryManager initialCategories={category || []} client:visible/>
+        <ArticleManage articles={Article.articles} client:visible />
     </ArticleManagementLayout>
 </Layout>

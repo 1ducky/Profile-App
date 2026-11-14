@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 type NavItem = { label: string; href: string };
 
 const NAV_ITEMS: NavItem[] = [
-    { label: "Beranda", href: "#beranda" },
-    { label: "Tentang", href: "#tentang" },
-    { label: "Produk", href: "#produk" },
-    { label: "Dampak Sosial", href: "#dampak-sosial" },
-    { label: "Artikel", href: "#artikel" },
-    { label: "Kontak", href: "#kontak" },
+    { label: "Beranda", href: "/#beranda" },
+    { label: "Tentang", href: "/#tentang" },
+    { label: "Produk", href: "/#produk" },
+    { label: "Dampak Sosial", href: "/#dampak-sosial" },
+    { label: "Artikel", href: "/articles" },
+    { label: "Kontak", href: "/#kontak" },
 ];
 
 type NavbarProps = {
@@ -25,8 +25,12 @@ export default function Navbar({
     ctaHref = "#kontak",
 }: NavbarProps) {
     const [open, setOpen] = useState(false);
-    const [active, setActive] = useState("#beranda");
     const [scrolled, setScrolled] = useState(false);
+     const [pathname, setPathname] = useState("");
+
+    useEffect(() => {
+        setPathname(window.location.pathname);
+    }, []);
 
     // Bayangan halus setelah scroll
     useEffect(() => {
@@ -37,23 +41,6 @@ export default function Navbar({
     }, []);
 
     // Tandai menu aktif sesuai section yang terlihat
-    useEffect(() => {
-        const sections = NAV_ITEMS.map((i) =>
-            document.querySelector(i.href)
-        ).filter(Boolean) as Element[];
-        if (!sections.length) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((e) => {
-                    if (e.isIntersecting) setActive(`#${e.target.id}`);
-                });
-            },
-            { rootMargin: "-40% 0px -55% 0px" }
-        );
-        sections.forEach((s) => observer.observe(s));
-        return () => observer.disconnect();
-    }, []);
 
     // Tutup menu mobile dengan Escape
     useEffect(() => {
@@ -95,7 +82,7 @@ export default function Navbar({
                 {/* Menu desktop */}
                 <ul className="hidden items-center gap-8 lg:flex">
                     {NAV_ITEMS.map((item) => {
-                        const isActive = active === item.href;
+                        const isActive = pathname === item.href;
                         return (
                             <li key={item.href}>
                                 <a
@@ -156,13 +143,15 @@ export default function Navbar({
                 className="border-t border-border bg-white lg:hidden"
             >
                 <ul className="mx-auto max-w-container px-(--container-pad) py-3">
-                    {NAV_ITEMS.map((item) => (
+                    {NAV_ITEMS.map((item) => {
+                        const isActive:boolean = pathname == item.href
+                        return (
                         <li key={item.href}>
                             <a
                                 href={item.href}
                                 onClick={() => setOpen(false)}
-                                aria-current={active === item.href ? "page" : undefined}
-                                className={`block rounded-md px-2 py-3 text-base ${active === item.href
+                                aria-current={isActive ? "page" : undefined}
+                                className={`block rounded-md px-2 py-3 text-base ${isActive
                                     ? "font-semibold text-primary"
                                     : "text-ink"
                                     }`}
@@ -170,7 +159,7 @@ export default function Navbar({
                                 {item.label}
                             </a>
                         </li>
-                    ))}
+                    )})}
                     <li className="pt-2 pb-3">
                         <a
                             href={ctaHref}

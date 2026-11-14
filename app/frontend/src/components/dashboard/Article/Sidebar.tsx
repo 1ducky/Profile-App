@@ -1,5 +1,6 @@
-import { FileText, ImagePlus, Inbox, LayoutDashboard, Settings, UserRound } from "lucide-react";
+import { FileText, Image, ImagePlus, Inbox, LayoutDashboard, Settings, User, UserRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react/types";
+import { useEffect, useState } from "react";
 
 export interface NavItem {
     label: string
@@ -9,15 +10,16 @@ export interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { label: "Ringkasan", icon: LayoutDashboard, href: "/admin" },
-    { label: "Konten", icon: FileText, href: "/admin/konten", active: true },
-    { label: "Media", icon: ImagePlus, href: "/admin/media" },
-    { label: "Halaman Tentang", icon: UserRound, href: "/admin/tentang" },
-    { label: "Pesan Masuk", icon: Inbox, href: "/admin/pesan" },
-    { label: "Pengaturan", icon: Settings, href: "/admin/pengaturan" },
+    { label: "Profile", icon: User, href: "/dashboard/profile" },
+    { label: "Konten", icon:Image, href: "/dashboard/articles" },
 ];
 
 export function Sidebar({ onNavigate, navItem = NAV_ITEMS }: { onNavigate?: () => void, navItem?: NavItem[] }) {
+    const [pathname, setPathname] = useState("");
+
+    useEffect(() => {
+        setPathname(window.location.pathname);
+    }, []);
     return (
         <nav aria-label="Navigasi admin" className="flex h-full flex-col gap-6 bg-white px-4 py-6">
             <a href="/admin" className="flex items-center gap-3 px-2">
@@ -31,7 +33,9 @@ export function Sidebar({ onNavigate, navItem = NAV_ITEMS }: { onNavigate?: () =
             </a>
 
             <ul className="flex flex-1 flex-col gap-1">
-                {NAV_ITEMS.map(({ label, icon: Icon, href, active, }) => (
+                {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
+                    const active:boolean = pathname == href 
+                    return (
                     <li key={label}>
                         <a
                             href={href}
@@ -47,7 +51,7 @@ export function Sidebar({ onNavigate, navItem = NAV_ITEMS }: { onNavigate?: () =
 
                         </a>
                     </li>
-                ))}
+                )})}
             </ul>
 
         </nav>
