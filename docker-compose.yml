@@ -1,32 +1,48 @@
 services:
-  mysql:
-    image: mysql:latest
-    container_name: profile-mysql
+  postgres:
+    image: postgres:16
+    container_name: profile-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - profile_db:/var/lib/mysql
+      - profile_db:/var/lib/postgresql/data
     ports:
-      - "3306:3306"
+      - "5432:5432"
     networks:
       - profile-app-network
     healthcheck:
       test:
-        - CMD
-        - mysqladmin
-        - ping
-        - -h
-        - localhost
-        - -u
-        - root
-        - -p${DB_PASSWORD}
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
       interval: 5s
       timeout: 5s
       retries: 10
+  
+  migration:
+    image: postgres:16
+    profiles:
+      - tools
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: ${DB_HOST}
+      PGPORT: 5432
+      PGDATABASE: ${DB_NAME}
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./app/backend/infra/db/schema:/migrations:ro
+    networks:
+      - profile-app-network
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        psql -v ON_ERROR_STOP=1 \
+          -f /migrations/000_initialPG.sql
   s3Service:
     image: rustfs/rustfs:latest
     container_name: S3Services
@@ -68,30 +84,7 @@ services:
       - profile-app-network
     restart: "no"
 
-  migration:
-    image: mysql:latest
-    profiles:
-      - tools
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      MYSQL_PWD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-    volumes:
-      - ./app/backend/infra/db/schema:/migrations:ro
-    networks:
-      - profile-app-network
-    entrypoint: [ "/bin/sh", "-c" ]
-    command:
-      - |
-        mysql \
-          -h mysql \
-          -u "$$MYSQL_USER" \
-          "$$MYSQL_DATABASE" \
-          < /migrations/000_initial.sql
-
+  
   api:
     image: backend-profile:latest
     build:
@@ -102,7 +95,7 @@ services:
     env_file:
       - .env
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       s3Service:
         condition: service_healthy
