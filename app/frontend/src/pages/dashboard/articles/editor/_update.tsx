@@ -3,7 +3,7 @@ import { EditorArticle } from "../../../../components/Editor/EditorArticle"
 import type { ArticleField, ArticleResponse } from "../../../../contract/article"
 
 
-export function UpdateArticleEditor({ defaultValue }: { defaultValue: ArticleResponse }) {
+export function UpdateArticleEditor({ defaultValue, autoSuggest }: { defaultValue: ArticleResponse, autoSuggest: { category: string[] } }) {
     const onSubmit = async (req: ArticleField) => {
         try {
             const res = await UpdateArticles(req, defaultValue.id)
@@ -15,6 +15,7 @@ export function UpdateArticleEditor({ defaultValue }: { defaultValue: ArticleRes
     }
 
     return <EditorArticle
+        autoComplate={autoSuggest}
         onPublish={(e) => onSubmit(e)} defaultValue={{
             badges: defaultValue?.badges,
             category: defaultValue?.category,

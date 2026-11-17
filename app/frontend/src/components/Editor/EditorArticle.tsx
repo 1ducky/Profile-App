@@ -5,6 +5,7 @@ import { ResolveUrlAsset } from "../../utils/resolve-url";
 import { TagInput, type TagInputHandle } from "./EditorTagInput";
 import type { MDXEditorMethods } from "@mdxeditor/editor";
 import EditorMarkdown from "./EditorMarkDown";
+import { SuggestionsField } from "./Ediotr.sugest";
 
 const Sanitize = (req: ArticleField, mode: "write" | "external"): ArticleField => ({
     title: req.title.trim(),
@@ -47,10 +48,13 @@ function Field({
 
 
 
-export function EditorArticle({ onPublish, defaultValue }: { onPublish: (req: ArticleField) => void, defaultValue?: ArticleField }) {
+export function EditorArticle({ onPublish, defaultValue, autoComplate }: { onPublish: (req: ArticleField) => void, defaultValue?: ArticleField, autoComplate?: { category: string[] } }) {
     const tagsRef = useRef<TagInputHandle>(null);
     const badgesRef = useRef<TagInputHandle>(null);
     const mdEditorRef = useRef<MDXEditorMethods>(null)
+
+    const categoryfieldSugest = useRef<HTMLInputElement>(null)
+
     const [mode, setMode] = useState<"write" | "external">("write")
     const [cover, setCover] = useState<string>(defaultValue?.cover || "")
 
@@ -65,7 +69,7 @@ export function EditorArticle({ onPublish, defaultValue }: { onPublish: (req: Ar
             badges: badgesRef.current?.getValue() || [],
             tags: tagsRef.current?.getValue() || [],
             content: mdEditorRef.current?.getMarkdown() || "",
-            category: String(formData.get("category") ?? ""),
+            category: String(formData.get("category") || categoryfieldSugest.current?.value || ""),
             excerpt: String(formData.get("excerpt") ?? ""),
             title: String(formData.get("title") ?? ""),
             url: String(formData.get("url") ?? ""),
@@ -225,12 +229,13 @@ export function EditorArticle({ onPublish, defaultValue }: { onPublish: (req: Ar
                     <h2 className="text-lg font-semibold">Kategori dan label</h2>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <Field label="Kategori" htmlFor="category" error={undefined}>
-                            <input
-                                id="category"
-                                name="category"
+                            <SuggestionsField
+                                fieldRef={categoryfieldSugest}
+                                suggestions={autoComplate?.category ?? []}
                                 defaultValue={defaultValue?.category || ""}
+                                name="category"
+                                id="category"
                                 placeholder="mis. Teknologi"
-                                className={"w-full rounded-[10px] border border-[#D1D5DB] bg-white px-3.5 py-2.5 text-[15px] text-[#1F2937] placeholder:text-[#9CA3AF] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"}
                             />
                         </Field>
                     </div>

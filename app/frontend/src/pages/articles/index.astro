@@ -16,6 +16,9 @@ import HListed from "../../components/Content/HListed.astro";
 import { GetListArticle } from "../../app/feature/article";
 import type { ArticleListResponse } from "../../contract/article";
 import { parseArticleQuery } from "../../app/feature/article/astroquery";
+import { createCategoryApi } from "../../app/feature/category";
+import { api } from "../../lib/api/api-client";
+import type { categoryResponse } from "../../app/feature/category/type";
 
 // try {
 //     const res = await GetListArticle();
@@ -25,9 +28,13 @@ import { parseArticleQuery } from "../../app/feature/article/astroquery";
 // }
 
 const filter = parseArticleQuery(Astro.url.searchParams);
-var articlesList: ArticleListResponse | null = null;
+let articlesList: ArticleListResponse | null = null;
+let Category: categoryResponse[] | null = null;
 try {
-    articlesList = await GetListArticle(filter);
+    const [articleRes,categoryRes] = await Promise.all([GetListArticle(filter), createCategoryApi(api).getCategory()]);
+    articlesList = articleRes
+    Category = categoryRes.data
+
 } catch (e) {
     console.log(e);
 }
@@ -43,6 +50,12 @@ articlesList.articles.forEach((e) => {
         path: e.category,
     });
 });
+Category?.forEach((e) => {
+    category.set(e.slug, {
+        label:e.slug.toUpperCase(),
+        path:e.slug
+    })
+})
 const tags = new Map<string, NavItem>();
 
 articlesList.articles.forEach((e) => {

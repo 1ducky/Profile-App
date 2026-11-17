@@ -3,7 +3,7 @@ import { EditorArticle } from "../../../../components/Editor/EditorArticle"
 import type { ArticleField } from "../../../../contract/article"
 
 
-export function CreateArticle() {
+export function CreateArticle({ autoSuggest }: { autoSuggest: { category: string[] } }) {
     const onSubmit = async (req: ArticleField) => {
         try {
             const res = await PublishArticle(req)
@@ -15,6 +15,7 @@ export function CreateArticle() {
     }
 
     return <EditorArticle
+        autoComplate={autoSuggest}
         onPublish={(e) => onSubmit(e)}
     />
 }

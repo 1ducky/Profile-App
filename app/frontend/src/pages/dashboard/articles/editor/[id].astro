@@ -1,6 +1,7 @@
 ---
 import { GetByID} from "../../../../app/feature/article";
 import { createAuthApi } from "../../../../app/feature/auth";
+import { createCategoryApi } from "../../../../app/feature/category";
 import type { ArticleResponse } from "../../../../contract/article";
 import Layout from "../../../../layouts/Layout.astro";
 import { createApi } from "../../../../lib/api/api-client";
@@ -17,12 +18,15 @@ if (!id) {
 }
 
 let Article: ArticleResponse | null = null;
+let categorySugest: string[] = [];
+
 try {
     const api = createApi({cookie:cookie})
-    const sessionRes = await createAuthApi(api).session();
+    const [sessionRes,categoryRes] = await Promise.all([ createAuthApi(api).session(),createCategoryApi(api).getCategory()]);
     if (sessionRes.data.id == "") {
         return Astro.redirect("/articles");
     }
+    categorySugest = categoryRes.data.map(i => i.slug)
     const ArticleRes = await GetByID(id);
     Article = ArticleRes;
 
@@ -42,5 +46,5 @@ if (!Article) return Astro.redirect("/notfound");
 ---
 
 <Layout>
-    <UpdateArticleEditor defaultValue={Article} client:only="react" />
+    <UpdateArticleEditor autoSuggest={{category:categorySugest}} defaultValue={Article} client:only="react" />
 </Layout>

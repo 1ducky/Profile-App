@@ -1,23 +1,28 @@
 ---
 
 import { createAuthApi } from "../../../../app/feature/auth";
+import { createCategoryApi } from "../../../../app/feature/category";
 import Layout from "../../../../layouts/Layout.astro";
 import { createApi } from "../../../../lib/api/api-client";
 import { ApiError } from "../../../../lib/api/error";
 import { CreateArticle } from "./_publish";
 
 const cookie = Astro.request.headers.get("cookie")||"";
+
+let categorySugest : string[] = []
 try {
     const api = createApi({cookie:cookie})
-    const sessionRes = await createAuthApi(api).session();
+    const [sessionRes,categoryRes] = await Promise.all([createAuthApi(api).session(),createCategoryApi(api).getCategory()]);
     if (sessionRes.data.id == "") {
         return Astro.redirect("/articles");
     }
+    categorySugest = categoryRes.data.map(i => i.slug)
 } catch (e) {
     if (e instanceof ApiError) {
         if (e.statusCode == 401) {
             return Astro.redirect("/articles");
         }
+        console.log(e.code)
     }
 }
 ---
@@ -30,6 +35,6 @@ try {
     noIndex
 >
     <main>
-        <CreateArticle client:only="react" />
+        <CreateArticle autoSuggest={{category:categorySugest}} client:only="react" />
     </main>
 </Layout>
