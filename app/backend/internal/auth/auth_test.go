@@ -25,8 +25,8 @@ func CleanUpTableSession(t *testing.T, dbconn db.DBTX) {
 	}
 }
 
-func NewMySQLDatabase(t *testing.T, conf config.DBConfig) db.DBTX {
-	conn, err := db.NewMySQLDatabase(&conf)
+func NewDatabasePersistent(t *testing.T, cfg config.DBConfig) db.DBTX {
+	conn, err := db.NewPostgresDatabase(&cfg)
 	if err != nil {
 		t.Fatal("Error: ", err)
 	}
@@ -34,23 +34,28 @@ func NewMySQLDatabase(t *testing.T, conf config.DBConfig) db.DBTX {
 }
 
 func NewMysqlCredentialRepo(t *testing.T, db db.DBTX) auth.CredentialRepositoryContract {
-	return credential.NewMySQLRepository(db)
+	return credential.NewPGRepository(db)
 }
 func NewMysqlSessionRepo(t *testing.T, db db.DBTX) auth.SessionRepositoryContract {
-	return session.NewMySQLRepository(db)
+	return session.NewPGSQLRepository(db)
 }
 
 func TestMain(t *testing.T) {
-	conf, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		t.Fatal("Error: ", err)
 	}
-	mysql := NewMySQLDatabase(t, conf.DBConfig)
+	cfg.DBConfig.DbName = "profile_db"
+	cfg.DBConfig.Password = "your_root_password"
+	cfg.DBConfig.Host = "0.0.0.0"
+	cfg.DBConfig.Port = "5432"
+	cfg.DBConfig.User = "profile_app"
+	mysql := NewDatabasePersistent(t, cfg.DBConfig)
 	CleanUpTableCredential(t, mysql)
 	CleanUpTableSession(t, mysql)
 	credentialRepo := NewMysqlCredentialRepo(t, mysql)
 	sessionRepo := NewMysqlSessionRepo(t, mysql)
-	JWT := jwt.NewJWT(conf.AuthConfig)
+	JWT := jwt.NewJWT(cfg.AuthConfig)
 
 	AuthUsecase := auth.NewAuthService(credentialRepo, JWT, sessionRepo)
 	if AuthUsecase == nil {

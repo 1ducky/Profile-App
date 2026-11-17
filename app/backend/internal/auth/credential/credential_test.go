@@ -8,12 +8,12 @@ import (
 	"testing"
 )
 
-func CreateRepository(t *testing.T, mysql db.DBTX) auth.CredentialRepositoryContract {
-	return credential.NewMySQLRepository(mysql)
+func CreateRepository(t *testing.T, persistent db.DBTX) auth.CredentialRepositoryContract {
+	return credential.NewPGRepository(persistent)
 }
 
 func CreateConn(t *testing.T, cfg config.DBConfig) db.DBTX {
-	mySQL, err := db.NewMySQLDatabase(&cfg)
+	mySQL, err := db.NewPostgresDatabase(&cfg)
 	if err != nil {
 		t.Fatal("Error: ", err)
 	}
@@ -30,6 +30,11 @@ func CleanUpTable(t *testing.T, mysql db.DBTX) {
 
 func TestMain(t *testing.T) {
 	cfg := config.LoadMySQLDatabaseConfig()
+	cfg.DbName = "profile_db"
+	cfg.Password = "your_root_password"
+	cfg.Host = "0.0.0.0"
+	cfg.Port = "5432"
+	cfg.User = "profile_app"
 	conn := CreateConn(t, cfg)
 	repo := CreateRepository(t, conn)
 	if repo == nil {

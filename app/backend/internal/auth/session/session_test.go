@@ -12,8 +12,13 @@ import (
 )
 
 func CreatemySQL(t *testing.T) db.DBTX {
-	conf := config.LoadMySQLDatabaseConfig()
-	mySQL, err := db.NewMySQLDatabase(&conf)
+	cfg := config.LoadMySQLDatabaseConfig()
+	cfg.DbName = "profile_db"
+	cfg.Password = "your_root_password"
+	cfg.Host = "0.0.0.0"
+	cfg.Port = "5432"
+	cfg.User = "profile_app"
+	mySQL, err := db.NewPostgresDatabase(&cfg)
 	if err != nil {
 		t.Fatal("Error: ", err)
 	}
@@ -22,7 +27,7 @@ func CreatemySQL(t *testing.T) db.DBTX {
 }
 
 func CreateRepository(mysql db.DBTX) auth.SessionRepositoryContract {
-	return session.NewMySQLRepository(mysql)
+	return session.NewPGSQLRepository(mysql)
 }
 
 func CleanUpTable(t *testing.T, mysql db.DBTX, ctx context.Context) {
