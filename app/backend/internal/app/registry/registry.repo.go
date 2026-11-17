@@ -25,13 +25,13 @@ type RegisterRepo struct {
 
 func NewRegisterRepo(persistent RegisterPersistent, conf config.AppConfig) RegisterRepo {
 	return RegisterRepo{
-		Cred:             credential.NewMySQLRepository(persistent.DB),
+		Cred:             credential.NewPGRepository(persistent.DB),
 		Token:            jwt.NewJWT(conf.AuthConfig),
-		Session:          session.NewMySQLRepository(persistent.DB),
-		Profile:          profile.NewMySQLRepository(persistent.DB),
-		Assets:           assets.NewMysqlRepo(persistent.DB),
-		Article:          article.NewMySQLRepository(persistent.DB),
+		Session:          session.NewPGSQLRepository(persistent.DB),
+		Profile:          profile.NewPostgresRepository(persistent.DB),
+		Assets:           assets.NewPostgresRepo(persistent.DB),
+		Article:          article.NewPGSQLRepository(persistent.DB),
 		BucketPersistent: persistent.Bucket,
-		ArticleCategory:  category.NewRepository(persistent.DB),
+		ArticleCategory:  category.NewPQSQLRepository(persistent.DB),
 	}
 }

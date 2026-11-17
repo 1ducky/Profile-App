@@ -36,8 +36,8 @@ func NewUoWCase(persistent *sql.DB, conf config.AppConfig) RegisterUoW {
 func buildRegisterCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[authApp.TXUsecase] {
 	return uow.NewUoW(persistent, func(tx db.DBTX) authApp.TXUsecase {
 		return authApp.TXUsecase{
-			Auth:    auth.NewAuthService(credential.NewMySQLRepository(tx), jwt.NewJWT(conf.AuthConfig), session.NewMySQLRepository(tx)),
-			Profile: profile.NewUsecase(profile.NewMySQLRepository(tx)),
+			Auth:    auth.NewAuthService(credential.NewPGRepository(tx), jwt.NewJWT(conf.AuthConfig), session.NewPGSQLRepository(tx)),
+			Profile: profile.NewUsecase(profile.NewPostgresRepository(tx)),
 		}
 	})
 }
@@ -48,8 +48,8 @@ func buildProfileCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[
 			return profileApp.TXUsecase{}
 		}
 		return profileApp.TXUsecase{
-			Profile: profile.NewUsecase(profile.NewMySQLRepository(tx)),
-			Asset:   assets.NewUsecase(conf.StorageConfig, bucket, assets.NewMysqlRepo(tx)),
+			Profile: profile.NewUsecase(profile.NewPostgresRepository(tx)),
+			Asset:   assets.NewUsecase(conf.StorageConfig, bucket, assets.NewPostgresRepo(tx)),
 		}
 	})
 }
@@ -57,8 +57,8 @@ func buildProfileCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[
 func buildArticleCase(persistent *sql.DB, conf config.AppConfig) uow.UnitOfWork[articleApp.TXUsecase] {
 	return uow.NewUoW(persistent, func(tx db.DBTX) articleApp.TXUsecase {
 		return articleApp.TXUsecase{
-			Article: article.NewUsecase(article.NewMySQLRepository(tx), category.NewRepository(tx)),
-			Asset:   assets.NewUsecase(conf.StorageConfig, nil, assets.NewMysqlRepo(tx)),
+			Article: article.NewUsecase(article.NewPGSQLRepository(tx), category.NewPQSQLRepository(tx)),
+			Asset:   assets.NewUsecase(conf.StorageConfig, nil, assets.NewPostgresRepo(tx)),
 		}
 	})
 }

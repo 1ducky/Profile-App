@@ -22,7 +22,7 @@ func StartApp() {
 	log.Print("Loading Config")
 	ctx := context.Background()
 	log.Print("Creating Context")
-	db, err := db.NewMySQLDatabase(&cfg.DBConfig)
+	db, err := db.NewPostgresDatabase(&cfg.DBConfig)
 	log.Print("Creating DB")
 	if err != nil {
 		panic(err)
