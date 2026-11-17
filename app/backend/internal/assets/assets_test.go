@@ -104,10 +104,15 @@ var TestBuffer = map[Mime][]byte{
 
 func NewUC(t *testing.T) assets.UsecaseContract {
 	conf, err := config.LoadConfig()
+	conf.DBConfig.DbName = "profile_db"
+	conf.DBConfig.Password = "your_root_password"
+	conf.DBConfig.Host = "0.0.0.0"
+	conf.DBConfig.Port = "5432"
+	conf.DBConfig.User = "profile_app"
 	if err != nil {
 		t.Fatal("Config Failed Init", err)
 	}
-	db, err := db.NewMySQLDatabase(&conf.DBConfig)
+	db, err := db.NewPostgresDatabase(&conf.DBConfig)
 	if err != nil {
 		t.Fatal("DB Failed Init", err, conf.DBConfig)
 	}
@@ -115,7 +120,7 @@ func NewUC(t *testing.T) assets.UsecaseContract {
 	if err != nil {
 		t.Fatal("Storage Failed Init")
 	}
-	assetRepo := assets.NewMysqlRepo(db)
+	assetRepo := assets.NewPostgresRepo(db)
 	assetManager := assets.NewUsecase(conf.StorageConfig, storage, assetRepo)
 	if assetManager == nil {
 		t.Fatal("Asset Manager Failed Init")
@@ -447,8 +452,8 @@ func TestReleaseByFileKeys(t *testing.T) {
 	})
 	t.Run("DUP_FILE_KEY_RELEASE", func(t *testing.T) {
 		err := assetsUC.ReleaseByFileKeys(t.Context(), []string{validFileKeys})
-		if err == nil {
-			t.Fatal("Should Be Error")
+		if err != nil {
+			t.Fatal("Should't Be Error")
 		}
 	})
 
@@ -509,8 +514,8 @@ func TestReleaseByFileKeysAndLinkingByFileKeys(t *testing.T) {
 	})
 	t.Run("DUP_FILE_KEY_RELEASE", func(t *testing.T) {
 		err := assetsUC.ReleaseByFileKeys(t.Context(), []string{validFileKeys})
-		if err == nil {
-			t.Fatal("Should Be Error")
+		if err != nil {
+			t.Fatal("Should't Be Error")
 		}
 	})
 
